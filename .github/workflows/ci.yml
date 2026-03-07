@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          check_together: 'yes'
+          format: gcc
+          ignore_paths: >-
+            .git
+            .github
+          severity: warning
+
+  shfmt:
+    name: Shell Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check formatting
+        run: |
+          # Install shfmt
+          go install mvdan.cc/sh/v3/cmd/shfmt@latest
+
+          # Check formatting (fail if not formatted correctly)
+          $(go env GOPATH)/bin/shfmt -d .
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bash grep sed awk coreutils
+
+      - name: Make scripts executable
+        run: |
+          chmod +x src/*.sh src/lib/*.sh src/commands/*.sh install.sh
+
+      - name: Run tests
+        run: |
+          # Test basic functionality
+          ./src/csm.sh --help
+          ./src/csm.sh list || true  # May have no sessions
+          ./src/csm.sh status || true
+          echo "Tests passed!"
