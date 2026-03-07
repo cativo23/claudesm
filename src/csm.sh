@@ -36,48 +36,48 @@ source "$SCRIPT_DIR/commands/tui.sh"
 
 # Mostrar versión
 show_version() {
-    echo "csm (Claude Session Manager) v1.0.0"
+	echo "csm (Claude Session Manager) v1.0.0"
 }
 
 # Punto de entrada principal
 main() {
-    local cmd="${1:-tui}"
+	local cmd="${1:-tui}"
 
-    # Manejar opciones globales
-    case "$cmd" in
-        --version|-V)
-            show_version
-            exit 0
-            ;;
-        --help|-h|help)
-            cmd_help
-            exit 0
-            ;;
-    esac
+	# Manejar opciones globales
+	case "$cmd" in
+	--version | -V)
+		show_version
+		exit 0
+		;;
+	--help | -h | help)
+		cmd_help
+		exit 0
+		;;
+	esac
 
-    shift 2>/dev/null || true
+	shift 2>/dev/null || true
 
-    # Ejecutar comando
-    case "$cmd" in
-        list)
-            cmd_list "$@"
-            ;;
-        clean)
-            cmd_clean "$@"
-            ;;
-        remove)
-            cmd_remove "$@"
-            ;;
-        resume)
-            cmd_resume "$@"
-            ;;
-        status)
-            cmd_status "$@"
-            ;;
-        tui|*)
-            cmd_tui
-            ;;
-    esac
+	# Ejecutar comando
+	case "$cmd" in
+	list)
+		cmd_list "$@"
+		;;
+	clean)
+		cmd_clean "$@"
+		;;
+	remove)
+		cmd_remove "$@"
+		;;
+	resume)
+		cmd_resume "$@"
+		;;
+	status)
+		cmd_status "$@"
+		;;
+	tui | *)
+		cmd_tui
+		;;
+	esac
 }
 
 # Ejecutar main

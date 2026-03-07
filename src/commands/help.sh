@@ -3,7 +3,7 @@
 
 # cmd_help - Mostrar ayuda
 cmd_help() {
-    cat << 'EOF'
+	cat <<'EOF'
 Claude Session Manager (csm)
 
 USAGE:
