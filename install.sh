@@ -14,8 +14,8 @@ NC='\033[0m'
 # Variables
 # Detectar usuario real incluso si se ejecuta con sudo (patrón usado por Docker/kind)
 if [ -n "$SUDO_USER" ]; then
-    REAL_HOME="/home/$SUDO_USER"
-    export HOME="$REAL_HOME"
+	REAL_HOME="/home/$SUDO_USER"
+	export HOME="$REAL_HOME"
 fi
 
 CSM_DIR="$HOME/.csm"
@@ -148,7 +148,7 @@ exec "$CSM_INSTALL_DIR/csm.sh" "$@"'
 		sudo chmod +x "$target_dir/csm"
 		success "Installed to $target_dir/csm (required sudo)"
 	else
-		echo "$wrapper_script" > "$target_dir/csm"
+		echo "$wrapper_script" >"$target_dir/csm"
 		chmod +x "$target_dir/csm"
 		success "Installed to $target_dir/csm"
 	fi
