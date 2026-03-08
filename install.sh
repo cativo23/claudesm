@@ -119,26 +119,10 @@ install_binary() {
 		return 0
 	fi
 
-	# Intentar con sudo
-	if sudo -n true 2>/dev/null; then
-		sudo cp "$BIN_DIR/csm.sh" /usr/local/bin/csm
-		sudo chmod +x /usr/local/bin/csm
-		success "Installed to /usr/local/bin/csm (with sudo)"
-		return 0
-	fi
-
-	# Fallback: ~/.local/bin
-	local local_bin="$HOME/.local/bin"
-	mkdir -p "$local_bin"
-	cp "$BIN_DIR/csm.sh" "$local_bin/csm"
-	chmod +x "$local_bin/csm"
-	success "Installed to $local_bin/csm"
-
-	# Verificar si ~/.local/bin está en PATH
-	if [[ ":$PATH:" != *":$local_bin:"* ]]; then
-		warning "$local_bin is not in your PATH"
-		info "Add it with: export PATH=\"$local_bin:\$PATH\""
-	fi
+	# Instalar con sudo en /usr/local/bin
+	sudo cp "$BIN_DIR/csm.sh" /usr/local/bin/csm
+	sudo chmod +x /usr/local/bin/csm
+	success "Installed to /usr/local/bin/csm"
 }
 
 # Instalar skill para Claude Code
