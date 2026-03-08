@@ -1,22 +1,20 @@
 #!/bin/bash
-# uninstall.sh - Desinstalador de Claude Session Manager
-# Uso: curl -fsSL https://raw.githubusercontent.com/cativo23/csm/main/uninstall.sh | bash
+# Claude Session Manager Uninstaller
+# Usage: curl -fsSL https://raw.githubusercontent.com/cativo23/csm/main/uninstall.sh | bash
 
 set -e
 
-# Colores
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Variables
 CSM_DIR="$HOME/.csm"
 SKILLS_DIR="$HOME/.claude/skills"
 PLUGINS_DIR="$HOME/.claude/plugins"
 
-# Funciones de output
 info() {
 	echo -e "${BLUE}ℹ $*${NC}"
 }
@@ -33,20 +31,16 @@ error() {
 	echo -e "${RED}✗ $*${NC}"
 }
 
-# Variables de opción
 FORCE=false
 DRY_RUN=false
 NEEDS_SUDO=false
 
-# Verificar si necesita sudo desde el inicio
 check_sudo_needed() {
-	# Si el binario está en /usr/local/bin y no tenemos permisos, necesitamos sudo
 	if [ -f "/usr/local/bin/csm" ] && [ ! -w "/usr/local/bin" ]; then
 		NEEDS_SUDO=true
 	fi
 }
 
-# Re-ejecutar con sudo si es necesario
 ensure_sudo() {
 	if [ "$NEEDS_SUDO" = true ] && [ "$(id -u)" -ne 0 ]; then
 		if command -v sudo &>/dev/null; then
@@ -59,6 +53,7 @@ ensure_sudo() {
 		fi
 	fi
 }
+
 show_help() {
 	echo "Claude Session Manager - Uninstall Script"
 	echo ""
@@ -83,7 +78,6 @@ show_help() {
 	exit 0
 }
 
-# Parsear argumentos
 parse_args() {
 	while [[ $# -gt 0 ]]; do
 		case $1 in
@@ -105,7 +99,6 @@ parse_args() {
 	done
 }
 
-# Preguntar confirmación
 confirm() {
 	local message="$1"
 
@@ -118,24 +111,20 @@ confirm() {
 	[[ "$confirm" =~ ^[Yy]$ ]]
 }
 
-# Remover binario del sistema
 remove_binary() {
 	info "Removing binary from system PATH..."
 
 	local removed=false
 
-	# Remover de /usr/local/bin
 	if [ -f "/usr/local/bin/csm" ]; then
 		if [ "$DRY_RUN" = true ]; then
 			info "Would remove /usr/local/bin/csm"
 			removed=true
 		elif [ -w "/usr/local/bin" ]; then
-			# Tenemos permisos de escritura
 			rm -f "/usr/local/bin/csm"
 			success "Removed /usr/local/bin/csm"
 			removed=true
 		elif command -v sudo &>/dev/null; then
-			# Intentar con sudo
 			if sudo rm -f "/usr/local/bin/csm" 2>/dev/null; then
 				success "Removed /usr/local/bin/csm"
 				removed=true
@@ -149,7 +138,6 @@ remove_binary() {
 		fi
 	fi
 
-	# Remover de ~/.local/bin
 	if [ -f "$HOME/.local/bin/csm" ]; then
 		if [ "$DRY_RUN" = true ]; then
 			info "Would remove $HOME/.local/bin/csm"
@@ -165,7 +153,6 @@ remove_binary() {
 	fi
 }
 
-# Remover directorio de instalación
 remove_installation() {
 	info "Removing installation directory..."
 
@@ -181,7 +168,6 @@ remove_installation() {
 	fi
 }
 
-# Remover skill de Claude Code
 remove_skill() {
 	info "Removing Claude Code skill..."
 
@@ -212,7 +198,6 @@ remove_skill() {
 	fi
 }
 
-# Preguntar sobre configuración
 remove_config() {
 	local config_file="$HOME/.csmrc"
 
@@ -228,7 +213,6 @@ remove_config() {
 	fi
 }
 
-# Verificar si queda algo
 check_leftovers() {
 	if [ "$DRY_RUN" = true ]; then
 		info "Would check for leftovers"
@@ -239,7 +223,6 @@ check_leftovers() {
 
 	local found=false
 
-	# Buscar alias en shell rc files
 	for rc_file in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile"; do
 		if [ -f "$rc_file" ] && grep -q "csm" "$rc_file" 2>/dev/null; then
 			warning "Found csm references in $rc_file - you may want to remove them manually"
@@ -248,7 +231,6 @@ check_leftovers() {
 		fi
 	done
 
-	# Buscar binarios residuales
 	for bin_path in "/usr/local/bin/csm" "$HOME/.local/bin/csm"; do
 		if [ -f "$bin_path" ]; then
 			warning "Found leftover binary: $bin_path"
@@ -261,7 +243,6 @@ check_leftovers() {
 	fi
 }
 
-# Mostrar mensaje final
 show_final_message() {
 	echo ""
 	echo "=================================================="
@@ -276,7 +257,6 @@ show_final_message() {
 	echo ""
 }
 
-# Main
 main() {
 	parse_args "$@"
 
@@ -284,7 +264,6 @@ main() {
 	echo "Uninstalling Claude Session Manager..."
 	echo ""
 
-	# Skip confirmation in dry-run mode
 	if [ "$DRY_RUN" = false ]; then
 		if ! confirm "Are you sure you want to uninstall csm?"; then
 			echo "Uninstall cancelled"
@@ -292,7 +271,6 @@ main() {
 		fi
 	fi
 
-	# Check and re-exec with sudo if needed (after confirmation)
 	check_sudo_needed
 	ensure_sudo "$@"
 
@@ -310,5 +288,4 @@ main() {
 	fi
 }
 
-# Ejecutar
 main "$@"
