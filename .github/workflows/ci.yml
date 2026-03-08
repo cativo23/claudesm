@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bash grep sed awk coreutils
+          sudo apt-get install -y bash grep sed gawk coreutils
 
       - name: Make scripts executable
         run: |
