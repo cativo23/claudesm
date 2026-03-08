@@ -107,62 +107,37 @@ download_files() {
 	success "Files downloaded"
 }
 
-# Configurar shell
-setup_shell() {
-	info "Setting up shell..."
+# Instalar binario en PATH del sistema
+install_binary() {
+	info "Installing binary to system PATH..."
 
-	# Detectar shell
-	local rc_file=""
-	local shell_name
-
-	if [ -n "$CSM_SHELL" ]; then
-		shell_name="$CSM_SHELL"
-	else
-		shell_name=$(basename "$SHELL")
+	# Intentar instalar en /usr/local/bin (no requiere sudo si ya existe)
+	if [ -w "/usr/local/bin" ]; then
+		cp "$BIN_DIR/csm.sh" /usr/local/bin/csm
+		chmod +x /usr/local/bin/csm
+		success "Installed to /usr/local/bin/csm"
+		return 0
 	fi
 
-	case "$shell_name" in
-	bash)
-		rc_file="$HOME/.bashrc"
-		;;
-	zsh)
-		rc_file="$HOME/.zshrc"
-		;;
-	*)
-		warning "Unknown shell: $shell_name, trying .bashrc"
-		rc_file="$HOME/.bashrc"
-		;;
-	esac
-
-	# Crear backup
-	if [ -f "$rc_file" ]; then
-		cp "$rc_file" "${rc_file}.csm.bak"
-		info "Backup created: ${rc_file}.csm.bak"
+	# Intentar con sudo
+	if sudo -n true 2>/dev/null; then
+		sudo cp "$BIN_DIR/csm.sh" /usr/local/bin/csm
+		sudo chmod +x /usr/local/bin/csm
+		success "Installed to /usr/local/bin/csm (with sudo)"
+		return 0
 	fi
 
-	# Agregar configuración
-	local config_added=false
+	# Fallback: ~/.local/bin
+	local local_bin="$HOME/.local/bin"
+	mkdir -p "$local_bin"
+	cp "$BIN_DIR/csm.sh" "$local_bin/csm"
+	chmod +x "$local_bin/csm"
+	success "Installed to $local_bin/csm"
 
-	# Agregar PATH
-	if ! grep -q 'CSM_DIR' "$rc_file" 2>/dev/null; then
-		echo "" >>"$rc_file"
-		echo "# Claude Session Manager" >>"$rc_file"
-		echo 'export CSM_DIR="$HOME/.csm"' >>"$rc_file"
-		echo 'export PATH="$CSM_DIR/bin:$PATH"' >>"$rc_file"
-		config_added=true
-	fi
-
-	# Agregar alias
-	if ! grep -q 'alias csm=' "$rc_file" 2>/dev/null; then
-		echo 'alias csm="$CSM_DIR/bin/csm.sh"' >>"$rc_file"
-		config_added=true
-	fi
-
-	if [ "$config_added" = true ]; then
-		success "Shell configuration added to $rc_file"
-		info "Run 'source $rc_file' or restart your terminal"
-	else
-		info "Shell already configured"
+	# Verificar si ~/.local/bin está en PATH
+	if [[ ":$PATH:" != *":$local_bin:"* ]]; then
+		warning "$local_bin is not in your PATH"
+		info "Add it with: export PATH=\"$local_bin:\$PATH\""
 	fi
 }
 
@@ -216,12 +191,14 @@ show_final_message() {
 	echo "  Claude Session Manager installed successfully!"
 	echo "=================================================="
 	echo ""
-	echo "Next steps:"
-	echo "  1. Run: source ${rc_file:-\$HOME/.bashrc}"
-	echo "  2. Try: csm --help"
-	echo "  3. Or:   csm (for interactive TUI)"
+	echo "Usage:"
+	echo "  csm              # Interactive TUI"
+	echo "  csm list         # List sessions"
+	echo "  csm clean        # Clean old sessions"
+	echo "  csm status       # Show statistics"
+	echo "  csm help         # Show help"
 	echo ""
-	echo "Inside Claude Code, you can now use:"
+	echo "Inside Claude Code:"
 	echo "  /csm list    - List sessions"
 	echo "  /csm status  - Show statistics"
 	echo ""
@@ -238,7 +215,7 @@ main() {
 	check_dependencies
 	create_directories
 	download_files
-	setup_shell
+	install_binary
 	install_skill
 	show_final_message
 }
