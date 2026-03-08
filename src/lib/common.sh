@@ -4,6 +4,7 @@
 # Directorios de Claude Code
 # Usar la ruta completa del home para el directorio de proyectos
 PROJECTS_DIR="$HOME/.claude/projects/-home-$(whoami)"
+# shellcheck disable=SC2034 # META_DIR reserved for future use
 META_DIR="$HOME/.claude/usage-data/session-meta"
 
 # Si no existe, intentar con el formato alternativo

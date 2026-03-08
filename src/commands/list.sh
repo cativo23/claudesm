@@ -47,7 +47,9 @@ cmd_list() {
 	for file in "${session_files[@]}"; do
 		[ -f "$file" ] || continue
 
-		local id size desc tools marker age
+		local id size desc tools marker
+		# shellcheck disable=SC2034 # age available for future use
+		local age
 
 		# Obtener ID (primeros 8 caracteres del UUID)
 		id=$(basename "$file" .jsonl | cut -d'-' -f1)

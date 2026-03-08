@@ -70,7 +70,8 @@ download_files() {
 	# Descargar desde GitHub o copiar localmente
 	if [ -n "$LOCAL_INSTALL" ]; then
 		# Instalación local (para desarrollo)
-		local src_dir="$(dirname "$0")/src"
+		local src_dir
+		src_dir="$(dirname "$0")/src"
 
 		if [ -d "$src_dir" ]; then
 			cp -r "$src_dir"/* "$BIN_DIR/"

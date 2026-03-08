@@ -6,7 +6,7 @@ CSM_CLEAN_DAYS=7
 CSM_MAX_MESSAGES=500
 CSM_AUTO_CLEAN_ENABLED=true
 CSM_SHOW_TOOLS=true
-CSM_DATE_FORMAT="%Y-%m-%d %H:%M"
+# CSM_DATE_FORMAT="%Y-%m-%d %H:%M"  # Reserved for future use
 
 # load_config - Cargar configuración desde archivo opcional
 load_config() {
