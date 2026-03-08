@@ -12,6 +12,12 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Variables
+# Detectar usuario real incluso si se ejecuta con sudo (patrón usado por Docker/kind)
+if [ -n "$SUDO_USER" ]; then
+    REAL_HOME="/home/$SUDO_USER"
+    export HOME="$REAL_HOME"
+fi
+
 CSM_DIR="$HOME/.csm"
 BIN_DIR="$CSM_DIR/bin"
 REPO_URL="https://github.com/cativo23/claude-session-manager"
@@ -111,18 +117,48 @@ download_files() {
 install_binary() {
 	info "Installing binary to system PATH..."
 
-	# Intentar instalar en /usr/local/bin (no requiere sudo si ya existe)
-	if [ -w "/usr/local/bin" ]; then
-		cp "$BIN_DIR/csm.sh" /usr/local/bin/csm
-		chmod +x /usr/local/bin/csm
-		success "Installed to /usr/local/bin/csm"
-		return 0
+	local target_dir="/usr/local/bin"
+	local use_sudo=false
+
+	# Determinar si necesitamos sudo (patrón Helm/kind/docker)
+	if [ ! -w "/usr/local/bin" ]; then
+		# No tenemos permisos de escritura, necesitamos sudo
+		if command -v sudo &>/dev/null; then
+			use_sudo=true
+		else
+			error "Cannot write to /usr/local/bin and sudo is not available"
+			error "Please run: sudo $0"
+			exit 1
+		fi
 	fi
 
-	# Instalar con sudo en /usr/local/bin
-	sudo cp "$BIN_DIR/csm.sh" /usr/local/bin/csm
-	sudo chmod +x /usr/local/bin/csm
-	success "Installed to /usr/local/bin/csm"
+	# Crear wrapper script (patrón usado por SDKs multi-archivo)
+	local wrapper_script
+	wrapper_script='#!/bin/bash
+# csm - Claude Session Manager wrapper
+CSM_INSTALL_DIR="$HOME/.csm/bin"
+if [ ! -f "$CSM_INSTALL_DIR/csm.sh" ]; then
+	echo "Error: csm not properly installed at $CSM_INSTALL_DIR" >&2
+	exit 1
+fi
+exec "$CSM_INSTALL_DIR/csm.sh" "$@"'
+
+	if [ "$use_sudo" = true ]; then
+		echo "$wrapper_script" | sudo tee "$target_dir/csm" >/dev/null
+		sudo chmod +x "$target_dir/csm"
+		success "Installed to $target_dir/csm (required sudo)"
+	else
+		echo "$wrapper_script" > "$target_dir/csm"
+		chmod +x "$target_dir/csm"
+		success "Installed to $target_dir/csm"
+	fi
+
+	# Verificar si está en PATH
+	if ! command -v csm &>/dev/null; then
+		warning "$target_dir is not in your PATH"
+		info "Add it with: export PATH=\"$target_dir:\$PATH\""
+		info "Or start a new shell"
+	fi
 }
 
 # Instalar skill para Claude Code
