@@ -2,6 +2,7 @@
 # list.sh - Listar sesiones de Claude Code
 
 # cmd_list - Listar todas las sesiones
+# shellcheck disable=SC2034
 cmd_list() {
 	local show_all=false
 	local show_current=false
@@ -47,9 +48,7 @@ cmd_list() {
 	for file in "${session_files[@]}"; do
 		[ -f "$file" ] || continue
 
-		local id size desc tools marker
-		# shellcheck disable=SC2034 # age available for future use
-		local age
+		local id size desc tools marker age
 
 		# Obtener ID (primeros 8 caracteres del UUID)
 		id=$(basename "$file" .jsonl | cut -d'-' -f1)
@@ -75,8 +74,14 @@ cmd_list() {
 			echo -n " "
 		fi
 
-		# Imprimir línea
-		printf " %-11s %-8s %-35s %s\n" "$id" "$size" "$desc" "$tools"
+		# Skip hidden sessions unless --all is specified
+		[[ "$show_all" = false && "$id" == .* ]] && continue
+
+		# Imprimir línea (con indicador visual para sesiones viejas)
+		local age_indicator=""
+		[ "$age" -gt 7 ] && age_indicator=" [${age}d]"
+
+		printf " %-11s %-8s %-35s %s%s\n" "$id" "$size" "$desc" "$tools" "$age_indicator"
 
 		# Si se pidió solo la actual, salir
 		[ "$show_current" = true ] && [[ "$marker" == "*" ]] && break
