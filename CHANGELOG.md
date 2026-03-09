@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed bug in `remove.sh` and `clean.sh` argument parsing where ID could be destroyed if flags were passed before the ID.
 
+## [0.3.5] - 2026-03-08
+
+### Changed
+- Migrated the `/csm` skill to the new Agent Skills standard ([agentskills.io](https://agentskills.io)):
+  - Updated structure to use `skills/csm/SKILL.md` with YAML frontmatter.
+  - Added `disable-model-invocation: true` to prevent automatic triggering.
+- Updated `install.sh` to install the skill in the new format and clean up legacy files.
+- Removed redundant skill installation to the deprecated plugins directory.
+
 ## [0.3.4] - 2026-03-08
 
 ### Changed
@@ -90,7 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional fzf integration for enhanced TUI
 
 [Unreleased]: https://github.com/cativo23/claude-session-manager/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/cativo23/claude-session-manager/compare/v0.3.4...v1.0.0
+[1.0.0]: https://github.com/cativo23/claude-session-manager/compare/v0.3.5...v1.0.0
+[0.3.5]: https://github.com/cativo23/claude-session-manager/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/cativo23/claude-session-manager/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/cativo23/claude-session-manager/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/cativo23/claude-session-manager/compare/v0.3.1...v0.3.2
