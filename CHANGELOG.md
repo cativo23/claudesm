@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-03-08
+
+### Fixed
+- Fixed release workflow trigger that was incorrectly skipped on PR merge to main
+
 ## [0.3.0] - 2026-03-08
 
 ### Added
@@ -51,7 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Slash command for Claude Code (/csm)
 - Optional fzf integration for enhanced TUI
 
-[Unreleased]: https://github.com/cativo23/claude-session-manager/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/cativo23/claude-session-manager/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/cativo23/claude-session-manager/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/cativo23/claude-session-manager/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/cativo23/claude-session-manager/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/cativo23/claude-session-manager/tree/v0.1.0
