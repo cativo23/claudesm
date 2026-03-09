@@ -26,37 +26,45 @@ tui_with_fzf() {
 		for file in "$PROJECTS_DIR"/*.jsonl; do
 			[ -f "$file" ] || continue
 
-			local id size desc marker age
+			local id size desc marker age color_id color_age
 			id=$(basename "$file" .jsonl | cut -d'-' -f1)
 			size=$(get_session_size "$file")
-			desc=$(generate_description "$file" 30)
+			desc=$(generate_description "$file" 40)
 			age=$(get_file_age_days "$file")
 
 			if [[ "$(basename "$file" .jsonl)" == "$current_session" ]]; then
-				marker="*"
+				marker="${GREEN}▶${NC}"
+				color_id="${GREEN}${BOLD}${id}${NC}"
 			else
 				marker=" "
+				color_id="${CYAN}${id}${NC}"
 			fi
 
-			sessions+=("$marker $id  $size  ${desc:0:30}  [$age d]")
+			if [ "$age" -gt 7 ]; then
+				color_age="${YELLOW}[${age}d]${NC}"
+			else
+				color_age="${DIM}[${age}d]${NC}"
+			fi
+
+			sessions+=("$marker $color_id  ${WHITE}$(printf '%-6s' "$size")${NC}  ${DIM}${desc:0:40}$(printf '%*s' $((40 - ${#desc})) '')${NC}  $color_age")
 		done
 
-		echo "SESSIONS"
-		echo "─────────────────────────────────────────────────────────"
+		color_output "${BOLD}${WHITE}  SESSIONS${NC}"
+		color_output "${GRAY} ────────────────────────────────────────────────────────────────────────${NC}"
 
 		# Mostrar sesiones
 		for s in "${sessions[@]}"; do
-			echo "  $s"
+			color_output "  $s"
 		done
 
 		echo ""
-		echo "ACTIONS"
-		echo "─────────────────────────────────────────────────────────"
-		echo "  [l] List sessions    [c] Clean old sessions"
-		echo "  [r] Remove session   [s] Show status"
-		echo "  [h] Help             [q] Quit"
+		color_output "${BOLD}${WHITE}  ACTIONS${NC}"
+		color_output "${GRAY} ────────────────────────────────────────────────────────────────────────${NC}"
+		color_output "  ${CYAN}[l]${NC} List sessions    ${CYAN}[c]${NC} Clean old sessions"
+		color_output "  ${CYAN}[r]${NC} Remove session   ${CYAN}[s]${NC} Show status"
+		color_output "  ${CYAN}[h]${NC} Help             ${CYAN}[q]${NC} Quit"
 		echo ""
-		echo -n "Select action: "
+		color_output -n "  ${BOLD}Select action: ${NC}"
 
 		read -r action
 
@@ -126,7 +134,7 @@ tui_basic() {
 		print_header "Claude Session Manager (csm)"
 		echo ""
 
-		PS3="Select action: "
+		PS3=$(color_output "\n${BOLD}${CYAN}Select action: ${NC}")
 		options=("List sessions" "Clean old sessions" "Remove session" "Show status" "Help" "Quit")
 		select opt in "${options[@]}"; do
 			case $opt in

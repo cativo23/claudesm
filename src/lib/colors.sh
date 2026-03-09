@@ -7,8 +7,22 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+WHITE='\033[0;37m'
+GRAY='\033[0;90m'
+
+# Estilos
 BOLD='\033[1m'
+DIM='\033[2m'
+ITALIC='\033[3m'
+UNDERLINE='\033[4m'
+INVERT='\033[7m'
 NC='\033[0m' # No Color
+
+# Colores de fondo (Background)
+BG_BLACK='\033[40m'
+BG_BLUE='\033[44m'
+BG_GRAY='\033[100m'
 
 # Verificar si la salida es un TTY
 is_tty() {
@@ -44,7 +58,7 @@ print_info() {
 
 print_header() {
 	local text="$1"
-	local width="${2:-60}"
+	local width="${2:-75}"
 	local line=""
 
 	# Crear línea de separación
@@ -53,6 +67,14 @@ print_header() {
 	done
 
 	echo ""
-	color_output "${BOLD}${text}${NC}"
-	color_output "${CYAN}${line}${NC}"
+	color_output "${BOLD}${CYAN}╭${line}╮${NC}"
+
+	# Centrar el texto
+	local padding=$(( (width - ${#text}) / 2 ))
+	local left_pad=$(printf '%*s' $padding '')
+	local right_pad=$(printf '%*s' $((width - padding - ${#text})) '')
+
+	color_output "${BOLD}${CYAN}│${NC}${BOLD}${WHITE}${left_pad}${text}${right_pad}${NC}${BOLD}${CYAN}│${NC}"
+	color_output "${BOLD}${CYAN}╰${line}╯${NC}"
+	echo ""
 }
