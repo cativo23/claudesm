@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref_name, 'release/')
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from branch name
+        id: version
+        run: |
+          # Extract version from branch name (supports release/v0.2.0 and release/0.2.0)
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+          VERSION="${BRANCH_NAME#release/}"
+
+          # Validate semver format (X.Y.Z)
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Invalid version format: $VERSION"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      - name: Check if tag exists
+        id: tag_check
+        run: |
+          VERSION="v${{ steps.version.outputs.version }}"
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Tag $VERSION does not exist"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create tag
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          VERSION="v${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+          echo "Created and pushed tag: $VERSION"
+
+      - name: Extract release notes from CHANGELOG.md
+        id: release_notes
+        run: |
+          VERSION="v${{ steps.version.outputs.version }}"
+
+          # Extract section for this version from CHANGELOG.md
+          # Look for ## [X.Y.Z] or ## X.Y.Z pattern
+          if [ -f CHANGELOG.md ]; then
+            NOTES=$(awk -v ver="$VERSION" '
+              BEGIN { in_section = 0; content = "" }
+              /^## \[?[0-9]+\.[0-9]+\.[0-9]+\]?/ {
+                if (in_section) exit
+                if (index($0, ver) > 0 || index($0, substr(ver, 2)) > 0) {
+                  in_section = 1
+                  next
+                }
+              }
+              in_section { content = content $0 "\n" }
+              END { print content }
+            ' CHANGELOG.md)
+
+            if [ -z "$NOTES" ]; then
+              NOTES="Release $VERSION"
+            fi
+          else
+            NOTES="Release $VERSION"
+          fi
+
+          # Write to file for use in next step
+          echo "$NOTES" > release_notes.txt
+          echo "Release notes extracted successfully"
+
+      - name: Create GitHub Release
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          body_path: release_notes.txt
+          prerelease: ${{ startsWith(steps.version.outputs.version, '0.') }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
