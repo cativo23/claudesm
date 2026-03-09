@@ -26,6 +26,7 @@ List, clean, remove, and resume sessions from a beautiful TUI or CLI.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![CI](https://github.com/cativo23/claude-session-manager/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/cativo23/claude-session-manager/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/Version-v1.0.0-blue.svg?style=flat-square)](CHANGELOG.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 [![Bash](https://img.shields.io/badge/Bash-4%2B-4EAA25?style=flat-square&logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
 

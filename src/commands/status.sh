@@ -12,8 +12,11 @@ cmd_status() {
 	fi
 
 	# Contar sesiones
-	local total
-	total=$(ls -1 "$PROJECTS_DIR"/*.jsonl 2>/dev/null | wc -l)
+	local total=0
+	shopt -s nullglob
+	local files=("$PROJECTS_DIR"/*.jsonl)
+	total=${#files[@]}
+	shopt -u nullglob
 
 	# Calcular tamaño total
 	local total_size
