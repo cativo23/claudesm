@@ -10,10 +10,12 @@ CYAN='\033[0;36m'
 # shellcheck disable=SC2034
 MAGENTA='\033[0;35m'
 WHITE='\033[0;37m'
+# shellcheck disable=SC2034
 GRAY='\033[0;90m'
 
 # Estilos
 BOLD='\033[1m'
+# shellcheck disable=SC2034
 DIM='\033[2m'
 # shellcheck disable=SC2034
 ITALIC='\033[3m'
