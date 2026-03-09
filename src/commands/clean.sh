@@ -87,8 +87,8 @@ cmd_clean() {
 
 	echo ""
 	if [ "$dry_run" = true ]; then
-		echo "Dry run complete. No files were removed."
+		color_output "${CYAN}Dry run complete.${NC} No files were removed."
 	else
-		echo "Summary: Removed $removed session(s), skipped $skipped"
+		color_output "${BOLD}${WHITE}Summary:${NC} Removed ${RED}$removed${NC} session(s), skipped ${GREEN}$skipped${NC}"
 	fi
 }
