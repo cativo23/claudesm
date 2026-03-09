@@ -89,8 +89,12 @@ cmd_list() {
 
 	printf "%s\n" "─────────────────────────────────────────────────────────────────────────"
 
-	local total
-	total=$(ls -1 "$PROJECTS_DIR"/*.jsonl 2>/dev/null | wc -l)
+	local total=0
+	shopt -s nullglob
+	local files=("$PROJECTS_DIR"/*.jsonl)
+	total=${#files[@]}
+	shopt -u nullglob
+
 	echo "Total: $total session(s)"
 
 	if [ -n "$current_session" ]; then

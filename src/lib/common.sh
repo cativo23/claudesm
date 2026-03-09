@@ -98,7 +98,11 @@ get_file_age_days() {
 		local now
 		local mtime
 		now=$(date +%s)
-		mtime=$(stat -c %Y "$file" 2>/dev/null)
+		if stat -c %Y "$file" &>/dev/null; then
+			mtime=$(stat -c %Y "$file")
+		else
+			mtime=$(stat -f %m "$file" 2>/dev/null || echo "$now")
+		fi
 		echo $(((now - mtime) / 86400))
 	else
 		echo "0"

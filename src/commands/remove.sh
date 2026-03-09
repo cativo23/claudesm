@@ -3,8 +3,8 @@
 
 # cmd_remove - Eliminar una sesión por ID
 cmd_remove() {
-	local id="$1"
 	local force=false
+	local id=""
 
 	# Parsear argumentos
 	shift 2>/dev/null || true
@@ -15,6 +15,9 @@ cmd_remove() {
 			shift
 			;;
 		*)
+			if [ -z "$id" ]; then
+				id="$1"
+			fi
 			shift
 			;;
 		esac
