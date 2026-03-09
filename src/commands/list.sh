@@ -41,14 +41,15 @@ cmd_list() {
 	current_session=$(get_current_session)
 
 	# Header
-	printf "%-2s %-12s %-8s %-35s %s\n" "" "ID" "SIZE" "DESCRIPTION" "TOOLS"
-	printf "%s\n" "─────────────────────────────────────────────────────────────────────────"
+	color_output "  ${BOLD}${GRAY}ID${NC}          ${BOLD}${GRAY}SIZE${NC}     ${BOLD}${GRAY}DESCRIPTION${NC}                         ${BOLD}${GRAY}TOOLS${NC}"
+	color_output "${GRAY} ────────────────────────────────────────────────────────────────────────${NC}"
 
 	# Listar sesiones
 	for file in "${session_files[@]}"; do
 		[ -f "$file" ] || continue
 
 		local id size desc tools marker age
+		local c_id c_size c_desc c_tools c_age
 
 		# Obtener ID (primeros 8 caracteres del UUID)
 		id=$(basename "$file" .jsonl | cut -d'-' -f1)
@@ -67,27 +68,35 @@ cmd_list() {
 
 		# Marcar sesión actual
 		if [[ "$(basename "$file" .jsonl)" == "$current_session" ]]; then
-			marker="*"
-			color_output "${GREEN}>"
+			marker="${GREEN}▶${NC}"
+			c_id="${GREEN}${BOLD}${id}${NC}"
 		else
 			marker=" "
-			echo -n " "
+			c_id="${CYAN}${id}${NC}"
 		fi
 
 		# Skip hidden sessions unless --all is specified
 		[[ "$show_all" = false && "$id" == .* ]] && continue
 
-		# Imprimir línea (con indicador visual para sesiones viejas)
-		local age_indicator=""
-		[ "$age" -gt 7 ] && age_indicator=" [${age}d]"
+		c_size="${WHITE}$(printf '%-6s' "$size")${NC}"
+		c_desc="${DIM}${desc:0:35}$(printf '%*s' $((35 - ${#desc})) '')${NC}"
 
-		printf " %-11s %-8s %-35s %s%s\n" "$id" "$size" "$desc" "$tools" "$age_indicator"
+		if [ "$age" -gt 7 ]; then
+			c_age="${YELLOW}[${age}d]${NC}"
+		else
+			c_age="${DIM}[${age}d]${NC}"
+		fi
+
+		c_tools="${WHITE}${tools}${NC}"
+
+		# Imprimir línea
+		color_output "$marker $c_id  $c_size  $c_desc  $c_tools $c_age"
 
 		# Si se pidió solo la actual, salir
-		[ "$show_current" = true ] && [[ "$marker" == "*" ]] && break
+		[ "$show_current" = true ] && [[ "$marker" == "${GREEN}▶${NC}" ]] && break
 	done
 
-	printf "%s\n" "─────────────────────────────────────────────────────────────────────────"
+	color_output "${GRAY} ────────────────────────────────────────────────────────────────────────${NC}"
 
 	local total=0
 	shopt -s nullglob

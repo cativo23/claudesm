@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-03-08
+
+### Added
+- Added ANSI color variables (`GRAY`, `DIM`, `WHITE`, `MAGENTA`) to `colors.sh` to improve aesthetic flexibility.
+- Refactored CLI headers and borders to use rounded corners (`╭───╮`).
+
+### Changed
+- Improved formatting and alignment in `tui.sh`, list, and status commands to ensure proper column spacing regardless of content length.
+- Resolved shellcheck warnings regarding unused color variables (`SC2034`) and masking return values (`SC2155`).
+
 ## [1.0.0] - 2026-03-08
 
 ### Added
@@ -98,7 +108,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Slash command for Claude Code (/csm)
 - Optional fzf integration for enhanced TUI
 
-[Unreleased]: https://github.com/cativo23/claude-session-manager/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/cativo23/claude-session-manager/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/cativo23/claude-session-manager/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/cativo23/claude-session-manager/compare/v0.3.5...v1.0.0
 [0.3.5]: https://github.com/cativo23/claude-session-manager/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/cativo23/claude-session-manager/compare/v0.3.3...v0.3.4
