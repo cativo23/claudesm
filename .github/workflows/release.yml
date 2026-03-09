@@ -23,6 +23,7 @@ jobs:
           # Extract version from branch name (supports release/v0.2.0 and release/0.2.0)
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           VERSION="${BRANCH_NAME#release/}"
+          VERSION="${VERSION#v}"
 
           # Validate semver format (X.Y.Z)
           if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
