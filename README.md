@@ -236,7 +236,8 @@ claude-session-manager/
 │       ├── help.sh           # Show help
 │       └── tui.sh            # TUI interface
 ├── skills/
-│   └── csm-skill.md          # Claude Code skill
+│   └── csm/
+│       └── SKILL.md          # Claude Code skill
 ├── README.md
 ├── CONTRIBUTING.md
 ├── CODE_OF_CONDUCT.md

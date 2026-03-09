@@ -147,28 +147,37 @@ install_skill() {
 
 	local skills_dir="$HOME/.claude/skills"
 	local plugins_dir="$HOME/.claude/plugins"
+	local skill_dest="$skills_dir/csm/SKILL.md"
 
-	mkdir -p "$skills_dir"
+	# Clean up legacy files
+	rm -f "$skills_dir/csm.md"
+	rm -f "$plugins_dir/csm.md"
 
-	cat >"$skills_dir/csm.md" <<'SKILL_EOF'
+	mkdir -p "$skills_dir/csm"
+
+	cat >"$skill_dest" <<'SKILL_EOF'
+---
+name: csm
+description: Claude Session Manager. List, clean, remove, and resume sessions.
+disable-model-invocation: true
+allowed-tools: Bash
+---
+
 # csm - Claude Session Manager
 
-When user types `/csm` or `/csm <command>`, execute the csm CLI and show results.
+When the user invokes this skill, execute the `csm` CLI command and show the results.
 
-## Commands
+Command to run: `csm $ARGUMENTS`
 
-- `/csm` or `/csm help` - Show help
-- `/csm list` - List all sessions
-- `/csm clean [--days N] [--force]` - Clean old sessions
-- `/csm remove <id> [--force]` - Remove specific session
-- `/csm resume <id>` - Show resume command
-- `/csm status` - Show statistics
+Available subcommands:
+- `list` - List all sessions
+- `clean [--days N] [--force]` - Clean old sessions
+- `remove <id> [--force]` - Remove specific session
+- `resume <id>` - Show resume command
+- `status` - Show statistics
 SKILL_EOF
 
-	mkdir -p "$plugins_dir"
-	cp "$skills_dir/csm.md" "$plugins_dir/csm.md" 2>/dev/null || true
-
-	success "Skill installed to $skills_dir/csm.md"
+	success "Skill installed to $skill_dest"
 }
 
 show_final_message() {
