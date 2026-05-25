@@ -1,10 +1,9 @@
 import pc from 'picocolors';
-import { discoverSessions } from '../lib/sessions/discover.js';
+import { discoverSessions, findSession } from '../lib/sessions/discover.js';
 import { getCurrentSessionId } from '../lib/sessions/current.js';
 import { safeDelete } from '../lib/fs-safe.js';
 import { metaFilePath } from '../lib/paths.js';
 import { printError } from '../lib/render.js';
-import { findSession } from '../lib/sessions/discover.js';
 
 export interface RemoveOpts {
   force?: boolean;
