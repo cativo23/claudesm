@@ -1,6 +1,4 @@
 import pc from 'picocolors';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import { discoverSessions } from '../lib/sessions/discover.js';
 import { getCurrentSessionId } from '../lib/sessions/current.js';
 import { resolveConfig } from '../lib/config.js';

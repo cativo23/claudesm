@@ -1,7 +1,5 @@
 import { Command } from 'commander';
 import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 
 // Runtime Node version check
 const [major, minor] = process.versions.node.split('.').map(Number);
@@ -170,9 +168,13 @@ program
     await program.parseAsync(process.argv);
   } catch (err) {
     // Commander throws on exitOverride — handle --help and --version exits gracefully
-    if ((err as { code?: string }).code === 'commander.helpDisplayed' ||
-        (err as { code?: string }).code === 'commander.version') {
+    const errCode = (err as { code?: string }).code ?? '';
+    if (errCode === 'commander.helpDisplayed' || errCode === 'commander.version') {
       process.exit(0);
+    }
+    // Commander already printed its own error — just exit
+    if (errCode.startsWith('commander.')) {
+      process.exit(1);
     }
     // CSM typed errors
     const { CsmError } = await import('./lib/errors.js');

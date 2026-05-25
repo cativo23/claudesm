@@ -12,7 +12,7 @@ interface ParsedSession {
 interface RawEntry {
   type: string;
   message?: {
-    content?: Array<{ type: string; text?: string; name?: string }>;
+    content?: Array<{ type: string; text?: string; name?: string }> | string;
   };
   timestamp?: string;
 }
@@ -52,20 +52,26 @@ export async function parseSessionFile(filePath: string): Promise<ParsedSession>
       }
 
       if (entry.type === 'user' && !description) {
-        const blocks = entry.message?.content ?? [];
-        for (const block of blocks) {
-          if (block.type === 'text' && block.text) {
-            description = block.text.trim().slice(0, 200);
-            break;
+        const content = entry.message?.content;
+        if (typeof content === 'string' && content) {
+          description = content.trim().slice(0, 200);
+        } else if (Array.isArray(content)) {
+          for (const block of content) {
+            if (block.type === 'text' && block.text) {
+              description = block.text.trim().slice(0, 200);
+              break;
+            }
           }
         }
       }
 
       if (entry.type === 'assistant') {
-        const blocks = entry.message?.content ?? [];
-        for (const block of blocks) {
-          if (block.type === 'tool_use' && block.name) {
-            tools[block.name] = (tools[block.name] ?? 0) + 1;
+        const content = entry.message?.content;
+        if (Array.isArray(content)) {
+          for (const block of content) {
+            if (block.type === 'tool_use' && block.name) {
+              tools[block.name] = (tools[block.name] ?? 0) + 1;
+            }
           }
         }
       }

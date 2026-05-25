@@ -16,27 +16,24 @@ export async function discoverSessions(currentSessionId: string | null): Promise
     throw err;
   }
 
-  const projects: ProjectRecord[] = [];
-  let totalSessions = 0;
-
-  for (const slugDirent of slugDirents) {
+  const projectResults = await Promise.all(slugDirents.map(async (slugDirent) => {
     // Only descend into actual directories — skip symlinks, files, and path traversal
-    if (!slugDirent.isDirectory()) continue;
+    if (!slugDirent.isDirectory()) return null;
     const slug = slugDirent.name;
     // Guard against path traversal via crafted slug names
     const slugPath = path.resolve(PROJECTS_DIR, slug);
-    if (!slugPath.startsWith(path.resolve(PROJECTS_DIR) + path.sep)) continue;
+    if (!slugPath.startsWith(path.resolve(PROJECTS_DIR) + path.sep)) return null;
+
     let entries;
     try {
       entries = await fs.readdir(slugPath, { withFileTypes: true });
     } catch {
-      continue;
+      return null;
     }
 
     const jsonlFiles = entries.filter(d => d.isFile() && d.name.endsWith('.jsonl'));
-    if (jsonlFiles.length === 0) continue;
+    if (jsonlFiles.length === 0) return null;
 
-    // Parallelise stat + parse across session files within this project
     const settled = await Promise.all(jsonlFiles.map(async (dirent): Promise<Session | null> => {
       const filePath = path.join(slugPath, dirent.name);
       const sessionId = dirent.name.replace(/\.jsonl$/, '');
@@ -70,17 +67,15 @@ export async function discoverSessions(currentSessionId: string | null): Promise
     }));
 
     const sessions = settled.filter((s): s is Session => s !== null);
+    if (sessions.length === 0) return null;
     sessions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-    totalSessions += sessions.length;
 
-    projects.push({
-      slug,
-      display: decodeSlug(slug),
-      sessions,
-    });
-  }
+    return { slug, display: decodeSlug(slug), sessions };
+  }));
 
-  if (totalSessions === 0) {
+  const projects = projectResults.filter((p): p is ProjectRecord => p !== null);
+
+  if (projects.length === 0) {
     throw new NoSessionsFoundError('No sessions found');
   }
 

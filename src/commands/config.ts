@@ -57,14 +57,15 @@ async function cmdPath(): Promise<void> {
 
 async function cmdEdit(): Promise<void> {
   const { execa } = await import('execa');
-  const editor = process.env['VISUAL'] ?? process.env['EDITOR'] ?? (process.platform === 'win32' ? 'notepad' : 'nano');
+  const editorStr = process.env['VISUAL'] ?? process.env['EDITOR'] ?? (process.platform === 'win32' ? 'notepad' : 'nano');
+  const [editorBin, ...editorArgs] = editorStr.trim().split(/\s+/);
   try {
     // Ensure config file exists before opening
     await saveConfig({});
-    await execa(editor, [CONFIG_FILE], { stdio: 'inherit' });
+    await execa(editorBin!, [...editorArgs, CONFIG_FILE], { stdio: 'inherit' });
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      printError(`Editor not found: ${editor}. Set $EDITOR or $VISUAL.`);
+      printError(`Editor not found: ${editorBin}. Set $EDITOR or $VISUAL.`);
       process.exit(1);
     }
     throw err;

@@ -1,7 +1,7 @@
 import pc from 'picocolors';
 import { discoverSessions } from '../lib/sessions/discover.js';
 import { getCurrentSessionId } from '../lib/sessions/current.js';
-import { formatBytes, formatDate, printError } from '../lib/render.js';
+import { formatBytes, printError } from '../lib/render.js';
 import { CsmError } from '../lib/errors.js';
 
 export interface StatusOpts {

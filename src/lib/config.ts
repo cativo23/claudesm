@@ -28,9 +28,11 @@ function fromEnv(): Partial<ConfigData> {
     if (!isNaN(n)) out.maxMessages = n;
   }
   const autoClean = process.env['CSM_AUTO_CLEAN_ENABLED'];
-  if (autoClean !== undefined) out.autoCleanEnabled = autoClean !== 'false' && autoClean !== '0';
+  if (autoClean === 'true' || autoClean === '1') out.autoCleanEnabled = true;
+  else if (autoClean === 'false' || autoClean === '0') out.autoCleanEnabled = false;
   const showTools = process.env['CSM_SHOW_TOOLS'];
-  if (showTools !== undefined) out.showTools = showTools !== 'false' && showTools !== '0';
+  if (showTools === 'true' || showTools === '1') out.showTools = true;
+  else if (showTools === 'false' || showTools === '0') out.showTools = false;
   return out;
 }
 
@@ -48,16 +50,21 @@ export async function loadRaw(): Promise<ConfigData> {
 }
 
 export async function resolveConfig(): Promise<ResolvedConfig> {
-  const file = await loadRaw();
   const env = fromEnv();
+
+  let fileData: Partial<ConfigData> = {};
+  try {
+    const text = await fs.readFile(CONFIG_FILE, 'utf8');
+    fileData = JSON.parse(text) as Partial<ConfigData>;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw new ConfigParseError(`Failed to parse config at ${CONFIG_FILE}: ${(err as Error).message}`);
+    }
+  }
 
   function resolve<T>(key: ConfigKey, defaultValue: T): ConfigEntry<T> {
     if (key in env) return { value: env[key] as T, source: 'env' as ConfigSource };
-    const fileVal = (file as unknown as Record<string, unknown>)[key];
-    const defaultVal = (DEFAULTS as unknown as Record<string, unknown>)[key];
-    if (fileVal !== undefined && fileVal !== defaultVal) {
-      return { value: fileVal as T, source: 'file' as ConfigSource };
-    }
+    if (key in fileData) return { value: (fileData as Record<string, unknown>)[key] as T, source: 'file' as ConfigSource };
     return { value: defaultValue, source: 'default' as ConfigSource };
   }
 
@@ -74,7 +81,7 @@ export async function saveConfig(data: Partial<ConfigData>): Promise<void> {
   const current = await loadRaw();
   const next: ConfigData = { ...current, ...data };
   const content = JSON.stringify(next, null, 2) + '\n';
-  const tmp = `${CONFIG_FILE}.tmp`;
+  const tmp = `${CONFIG_FILE}.${process.pid}.tmp`;
 
   await fs.writeFile(tmp, content, { mode: 0o600 });
   try {
