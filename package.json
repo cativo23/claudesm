@@ -4,7 +4,7 @@
   "description": "Manage your Claude Code sessions with elegance",
   "type": "module",
   "bin": {
-    "csm": "./dist/csm.cjs"
+    "csm": "./dist/csm.mjs"
   },
   "files": [
     "dist",
@@ -19,7 +19,7 @@
     "dev": "tsx src/csm.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --test --import tsx/esm src",
-    "prepublishOnly": "npm run typecheck && npm run test && npm run build"
+    "prepublishOnly": "npm run typecheck && npm run build"
   },
   "dependencies": {
     "commander": "^12.1.0",

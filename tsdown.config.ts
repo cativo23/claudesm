@@ -2,9 +2,9 @@ import { defineConfig } from 'tsdown';
 
 export default defineConfig({
   entry: { csm: 'src/csm.ts' },
-  format: ['cjs'],
+  format: ['esm'],
   target: 'node20',
-  outExtension: () => ({ js: '.cjs' }),
+  outExtension: () => ({ js: '.mjs' }),
   banner: { js: '#!/usr/bin/env node' },
   clean: true,
   sourcemap: true,

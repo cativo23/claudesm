@@ -29,7 +29,13 @@ program
   .showHelpAfterError(false);
 
 // Default action: TTY → Ink TUI, non-TTY → list
+// Also catches unknown commands (program.args has the unrecognized operand)
 program.action(async () => {
+  const unknownArg = program.args[0];
+  if (unknownArg) {
+    process.stderr.write(`error: unknown command '${unknownArg}'\n\nRun 'csm --help' for usage.\n`);
+    process.exit(1);
+  }
   const { run } = await import('./default-action.js');
   await run();
 });
@@ -159,7 +165,6 @@ program
     await run();
   });
 
-// Wrap in async IIFE — top-level await is not supported in CJS output
 (async () => {
   try {
     await program.parseAsync(process.argv);
