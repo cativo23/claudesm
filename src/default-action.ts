@@ -32,7 +32,7 @@ export async function run(): Promise<void> {
   };
 
   const onCopy = (session: Session): void => {
-    pendingOutput = session.id;
+    pendingOutput = session.id + '\n';
   };
 
   const onDelete = async (session: Session): Promise<void> => {

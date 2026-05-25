@@ -47,7 +47,7 @@ export async function run(id: string, opts: RemoveOpts): Promise<void> {
 
   if (!opts.force) {
     process.stderr.write(`Use ${pc.cyan('--force')} to confirm removal of session ${pc.cyan(shortId)}.\n`);
-    process.exit(1);
+    process.exit(2);
   }
 
   await safeDelete(session.filePath);

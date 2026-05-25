@@ -131,6 +131,7 @@ export function App({ loadSessions, onResume, onCopy, onDelete, onClean }: Props
           message={pendingClean
             ? 'Clean all sessions older than threshold? This cannot be undone.'
             : `Delete session ${selectedSession!.id.slice(0, 8)}? This cannot be undone.`}
+          confirmLabel={pendingClean ? 'clean' : 'delete'}
           onConfirm={handleConfirm}
           onCancel={() => { setPendingClean(false); setMode(pendingClean ? 'list' : 'action'); }}
         />

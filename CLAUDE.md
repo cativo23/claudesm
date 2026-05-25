@@ -14,8 +14,8 @@ npm run dev -- list
 # Build
 npm run build
 
-# Type-check & lint
-npm run typecheck && npm run lint
+# Type-check
+npm run typecheck
 ```
 
 ## Git
@@ -26,7 +26,7 @@ npm run typecheck && npm run lint
 
 ## Project Structure
 
-- **Entry point**: `src/cli.ts`
+- **Entry point**: `src/csm.ts`
 - **Commands**: `src/commands/` (TypeScript, `.ts` / `.tsx` for TUI)
 - **Libraries**: `src/lib/` (sessions, config, format helpers)
 - **Config**: OS-native JSON (see `csm config path`)

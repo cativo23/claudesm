@@ -127,7 +127,7 @@ npm update -g claudesm
 | `csm resume <id>` | Show resume command |
 | `csm status` | Show statistics |
 | `csm config <sub>` | Manage configuration |
-| `csm help` | Show help |
+| `csm --help` | Show help |
 
 #### Config subcommands
 
@@ -139,6 +139,7 @@ npm update -g claudesm
 | `csm config unset <key>` | Remove a key |
 | `csm config path` | Print config file path |
 | `csm config edit` | Open config in $EDITOR |
+| `csm config migrate` | Migrate from ~/.csmrc |
 
 ### Examples
 
@@ -158,7 +159,7 @@ csm remove abc123
 # Show how to resume a session
 csm resume abc123
 
-# Show statistics (total sessions, messages, tokens)
+# Show statistics (sessions, messages, disk size)
 csm status
 ```
 
@@ -196,10 +197,7 @@ Example `config.json`:
 
 ```json
 {
-  "cleanDays": 14,
-  "maxMessages": 500,
-  "autoCleanEnabled": true,
-  "showTools": true
+  "cleanDays": 14
 }
 ```
 
@@ -229,15 +227,23 @@ claude() {
 
 | Key | Action |
 |:----|:-------|
-| `l` | List sessions |
+| `↑/↓` | Navigate sessions |
+| `Enter` | Open action menu |
+| `r` | Resume selected session |
+| `d` | Delete selected session |
 | `c` | Clean old sessions |
-| `r` | Remove session |
 | `s` | Show status |
-| `h` | Show help |
-| `q` | Quit |
-| `↑/↓` | Navigate |
-| `Enter` | Select |
-| `Space` | Toggle (multi-select) |
+| `?` | Show help overlay |
+| `q` / `Esc` | Quit |
+
+**Inside the action menu:**
+
+| Key | Action |
+|:----|:-------|
+| `r` | Resume session |
+| `d` | Delete session |
+| `c` | Print session ID to stdout |
+| `Esc` | Back |
 
 ---
 
@@ -246,24 +252,40 @@ claude() {
 ```
 claudesm/
 ├── src/
-│   ├── cli.ts               # Entry point / CLI bootstrap
+│   ├── csm.ts               # Entry point / CLI wiring (Commander.js)
+│   ├── default-action.ts    # TUI launcher (runs when no subcommand given)
 │   ├── commands/            # Command implementations
 │   │   ├── list.ts
 │   │   ├── clean.ts
 │   │   ├── remove.ts
 │   │   ├── resume.ts
 │   │   ├── status.ts
-│   │   ├── help.ts
-│   │   ├── config.ts
-│   │   └── tui.tsx          # Ink-based TUI
+│   │   └── config.ts
+│   ├── ui/                  # Ink TUI components
+│   │   ├── App.tsx
+│   │   ├── SessionList.tsx
+│   │   ├── ActionMenu.tsx
+│   │   ├── ConfirmDialog.tsx
+│   │   ├── HelpOverlay.tsx
+│   │   ├── StatusView.tsx
+│   │   ├── StatusBar.tsx
+│   │   └── EmptyState.tsx
 │   └── lib/                 # Shared utilities
 │       ├── config.ts        # Config loader (OS-native paths)
-│       ├── sessions.ts      # Session discovery & parsing
-│       └── format.ts        # Output formatting helpers
+│       ├── paths.ts         # OS-native path resolution
+│       ├── types.ts         # Shared TypeScript types
+│       ├── errors.ts        # CsmError hierarchy
+│       ├── render.ts        # Output formatting helpers
+│       ├── fs-safe.ts       # Safe filesystem helpers
+│       └── sessions/        # Session discovery & parsing
+│           ├── discover.ts
+│           ├── parse.ts
+│           └── current.ts
 ├── skills/
 │   └── csm/
 │       └── SKILL.md         # Claude Code skill
 ├── package.json
+├── tsdown.config.ts
 ├── tsconfig.json
 ├── README.md
 ├── CONTRIBUTING.md

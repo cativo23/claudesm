@@ -76,6 +76,7 @@ async function atomicWrite(dest: string, content: string): Promise<void> {
         await fs.rm(tmp, { force: true });
       }
     } else {
+      await fs.rm(tmp, { force: true });
       throw err;
     }
   }
