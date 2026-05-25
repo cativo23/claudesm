@@ -40,10 +40,8 @@ export async function run(): Promise<void> {
     await safeDelete(metaFilePath(session.id));
   };
 
-  const onClean = async (): Promise<void> => {
-    const { run: cleanRun } = await import('./commands/clean.js');
-    await cleanRun({ force: true });
-  };
+  let pendingClean = false;
+  const onClean = (): void => { pendingClean = true; };
 
   try {
     const { unmount, waitUntilExit } = render(
@@ -52,6 +50,10 @@ export async function run(): Promise<void> {
     await waitUntilExit();
     unmount();
     if (pendingOutput !== null) process.stdout.write(pendingOutput);
+    if (pendingClean) {
+      const { run: cleanRun } = await import('./commands/clean.js');
+      await cleanRun({ force: true });
+    }
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOTTY') {
       // WSL broken raw mode — fallback to list

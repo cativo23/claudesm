@@ -29,6 +29,7 @@ export async function run(id: string, opts: ResumeOpts): Promise<void> {
     for (const m of matches) {
       process.stderr.write(`  ${m.id}  ${m.description?.slice(0, 50) ?? ''}\n`);
     }
+    process.stderr.write('Be more specific.\n');
     process.exit(8);
   }
 

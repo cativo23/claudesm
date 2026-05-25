@@ -26,7 +26,7 @@ interface Props {
   onResume: (session: Session) => void;
   onCopy: (session: Session) => void;
   onDelete: (session: Session) => Promise<void>;
-  onClean: () => Promise<void>;
+  onClean: () => void;
 }
 
 function flatSessions(projects: ProjectRecord[]): Session[] {
@@ -76,19 +76,20 @@ export function App({ loadSessions, onResume, onCopy, onDelete, onClean }: Props
   };
 
   const handleConfirm = async () => {
+    if (pendingClean) {
+      setPendingClean(false);
+      onClean();  // signals intent; runs after Ink unmounts in default-action.ts
+      exit();
+      return;
+    }
     try {
-      if (pendingClean) {
-        await onClean();
-      } else if (selectedSession) {
-        await onDelete(selectedSession);
-      }
+      if (selectedSession) await onDelete(selectedSession);
       const fresh = await loadSessions().catch(() => [] as ProjectRecord[]);
       setProjects(fresh);
       setSelectedIndex(i => Math.min(i, Math.max(0, flatSessions(fresh).length - 1)));
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setPendingClean(false);
       setMode('list');
     }
   };

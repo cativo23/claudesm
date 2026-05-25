@@ -56,10 +56,14 @@ export async function run(opts: ListOpts): Promise<void> {
   let total = 0;
 
   for (const project of projects) {
-    process.stdout.write(pc.cyan(pc.bold(`  ${project.display}\n`)));
+    let projectHeaderPrinted = false;
 
     for (const session of project.sessions) {
-      if (!opts.all && session.projectSlug.startsWith('.')) continue;
+      if (!opts.all && !opts.current && session.projectSlug.startsWith('.')) continue;
+      if (!projectHeaderPrinted) {
+        process.stdout.write(pc.cyan(pc.bold(`  ${project.display}\n`)));
+        projectHeaderPrinted = true;
+      }
 
       const shortId = session.id.slice(0, 8);
       const ageDays = Math.floor((Date.now() - session.timestamp.getTime()) / 86_400_000);

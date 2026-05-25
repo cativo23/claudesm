@@ -17,7 +17,7 @@ function fromEnv(): Partial<ConfigData> {
   const cleanDays = process.env['CSM_CLEAN_DAYS'];
   if (cleanDays !== undefined) {
     const n = Number(cleanDays);
-    if (!isNaN(n)) out.cleanDays = n;
+    if (!isNaN(n) && Number.isFinite(n) && Number.isInteger(n) && n >= 1) out.cleanDays = n;
   }
   return out;
 }
@@ -87,10 +87,20 @@ export async function saveConfig(data: Partial<ConfigData>): Promise<void> {
 }
 
 export async function unsetConfigKey(key: ConfigKey): Promise<void> {
-  const current = await loadRaw();
-  const next = { ...current };
-  delete (next as Record<string, unknown>)[key];
-  await saveConfig(next);
+  // Must bypass saveConfig — its loadRaw() + merge would restore the deleted key
+  let raw: Record<string, unknown> = {};
+  try {
+    const text = await fs.readFile(CONFIG_FILE, 'utf8');
+    raw = JSON.parse(text) as Record<string, unknown>;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+  }
+  delete raw[key];
+  await fs.mkdir(CONFIG_DIR, { recursive: true, mode: 0o700 });
+  const content = JSON.stringify(raw, null, 2) + '\n';
+  const tmp = `${CONFIG_FILE}.${process.pid}.tmp`;
+  await fs.writeFile(tmp, content, { mode: 0o600 });
+  await fs.rename(tmp, CONFIG_FILE);
 }
 
 export function parseConfigValue(key: ConfigKey, raw: string): number {

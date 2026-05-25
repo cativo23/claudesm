@@ -23,7 +23,7 @@ export function ActionMenu({ session, onAction }: Props): React.JSX.Element {
       <Text> </Text>
       <Text><Text color="green">r</Text> Resume session</Text>
       <Text><Text color="red">d</Text> Delete session</Text>
-      <Text><Text color="cyan">c</Text> Copy ID to clipboard</Text>
+      <Text><Text color="cyan">c</Text> Print ID to stdout</Text>
       <Text><Text dimColor>Esc</Text> Back</Text>
     </Box>
   );
