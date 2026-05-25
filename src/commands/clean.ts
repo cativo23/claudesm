@@ -5,6 +5,7 @@ import { resolveConfig } from '../lib/config.js';
 import { safeDelete } from '../lib/fs-safe.js';
 import { metaFilePath } from '../lib/paths.js';
 import { formatBytes, printInfo } from '../lib/render.js';
+import { NoSessionsFoundError } from '../lib/errors.js';
 
 export interface CleanOpts {
   days?: number;
@@ -20,7 +21,16 @@ export async function run(opts: CleanOpts): Promise<void> {
 
   const currentId = await getCurrentSessionId();
 
-  const projects = await discoverSessions(currentId);
+  let projects;
+  try {
+    projects = await discoverSessions(currentId);
+  } catch (err) {
+    if (err instanceof NoSessionsFoundError) {
+      printInfo('No sessions found — nothing to clean.');
+      return;
+    }
+    throw err;
+  }
 
   const allSessions = projects.flatMap(p => p.sessions);
   const now = Date.now();

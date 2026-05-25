@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
-// Simple inline spinner — ink-spinner is not bundled with ink 7
+import type { ProjectRecord, Session } from '../lib/types.js';
+import { SessionList } from './SessionList.js';
+import { ActionMenu, type SessionAction } from './ActionMenu.js';
+import { ConfirmDialog } from './ConfirmDialog.js';
+import { HelpOverlay } from './HelpOverlay.js';
+import { StatusView } from './StatusView.js';
+import { StatusBar } from './StatusBar.js';
+import { EmptyState } from './EmptyState.js';
+
+// ink-spinner is not bundled with ink 7 — inline minimal spinner
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 function Spinner(): React.JSX.Element {
   const [frame, setFrame] = React.useState(0);
@@ -10,14 +19,6 @@ function Spinner(): React.JSX.Element {
   }, []);
   return <Text color="cyan">{SPINNER_FRAMES[frame]}</Text>;
 }
-import type { ProjectRecord, Session } from '../lib/types.js';
-import { SessionList } from './SessionList.js';
-import { ActionMenu, type SessionAction } from './ActionMenu.js';
-import { ConfirmDialog } from './ConfirmDialog.js';
-import { HelpOverlay } from './HelpOverlay.js';
-import { StatusView } from './StatusView.js';
-import { StatusBar } from './StatusBar.js';
-import { EmptyState } from './EmptyState.js';
 
 type Mode = 'list' | 'action' | 'confirm' | 'help' | 'status';
 

@@ -9,7 +9,7 @@ export const PROJECTS_DIR = path.join(CLAUDE_DIR, 'projects');
 export const META_DIR = path.join(CLAUDE_DIR, 'usage-data', 'session-meta');
 export const CURRENT_SESSION_FILE = path.join(CLAUDE_DIR, 'current-session');
 
-const configBase = process.env['CSM_CONFIG_DIR'] ?? paths.config;
+const configBase = path.resolve(process.env['CSM_CONFIG_DIR'] ?? paths.config);
 export const CONFIG_DIR = configBase;
 export const CONFIG_FILE = path.join(configBase, 'config.json');
 export const LAST_CLEAN_FILE = path.join(configBase, 'last-clean');
