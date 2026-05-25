@@ -90,8 +90,6 @@ export async function unsetConfigKey(key: ConfigKey): Promise<void> {
   const current = await loadRaw();
   const next = { ...current };
   delete (next as Record<string, unknown>)[key];
-  // Restore default
-  (next as Record<string, unknown>)[key] = DEFAULTS[key];
   await saveConfig(next);
 }
 
