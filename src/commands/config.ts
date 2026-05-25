@@ -66,10 +66,14 @@ async function cmdEdit(): Promise<void> {
   const { execa } = await import('execa');
   const editorStr = process.env['VISUAL'] ?? process.env['EDITOR'] ?? (process.platform === 'win32' ? 'notepad' : 'nano');
   const [editorBin, ...editorArgs] = editorStr.trim().split(/\s+/);
+  if (!editorBin) {
+    printError('$EDITOR is empty. Set $VISUAL or $EDITOR to an editor binary.');
+    process.exit(1);
+  }
   try {
     // Ensure config file exists before opening
     await saveConfig({});
-    await execa(editorBin!, [...editorArgs, CONFIG_FILE], { stdio: 'inherit' });
+    await execa(editorBin, [...editorArgs, CONFIG_FILE], { stdio: 'inherit' });
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       printError(`Editor not found: ${editorBin}. Set $EDITOR or $VISUAL.`);

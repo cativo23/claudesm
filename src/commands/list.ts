@@ -1,7 +1,7 @@
 import pc from 'picocolors';
 import { discoverSessions } from '../lib/sessions/discover.js';
 import { getCurrentSessionId } from '../lib/sessions/current.js';
-import { formatBytes, formatDate, truncate, formatToolsLine } from '../lib/render.js';
+import { formatBytes, truncate, formatToolsLine } from '../lib/render.js';
 import type { ListJsonOutput, Session } from '../lib/types.js';
 
 export interface ListOpts {

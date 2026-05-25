@@ -59,31 +59,33 @@ export async function resolveConfig(): Promise<ResolvedConfig> {
   };
 }
 
-export async function saveConfig(data: Partial<ConfigData>): Promise<void> {
-  await fs.mkdir(CONFIG_DIR, { recursive: true, mode: 0o700 });
-  const current = await loadRaw();
-  const next: ConfigData = { ...current, ...data };
-  const content = JSON.stringify(next, null, 2) + '\n';
-  const tmp = `${CONFIG_FILE}.${process.pid}.tmp`;
-
+async function atomicWrite(dest: string, content: string): Promise<void> {
+  const tmp = `${dest}.${process.pid}.tmp`;
   await fs.writeFile(tmp, content, { mode: 0o600 });
   try {
-    await fs.rename(tmp, CONFIG_FILE);
+    await fs.rename(tmp, dest);
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'EBUSY') {
       // Windows antivirus lock — retry once after 100ms
       await new Promise(r => setTimeout(r, 100));
       try {
-        await fs.rename(tmp, CONFIG_FILE);
+        await fs.rename(tmp, dest);
       } catch {
         // Last resort: non-atomic copy (Windows only)
-        await fs.copyFile(tmp, CONFIG_FILE);
+        await fs.copyFile(tmp, dest);
         await fs.rm(tmp, { force: true });
       }
     } else {
       throw err;
     }
   }
+}
+
+export async function saveConfig(data: Partial<ConfigData>): Promise<void> {
+  await fs.mkdir(CONFIG_DIR, { recursive: true, mode: 0o700 });
+  const current = await loadRaw();
+  const next: ConfigData = { ...current, ...data };
+  await atomicWrite(CONFIG_FILE, JSON.stringify(next, null, 2) + '\n');
 }
 
 export async function unsetConfigKey(key: ConfigKey): Promise<void> {
@@ -97,10 +99,7 @@ export async function unsetConfigKey(key: ConfigKey): Promise<void> {
   }
   delete raw[key];
   await fs.mkdir(CONFIG_DIR, { recursive: true, mode: 0o700 });
-  const content = JSON.stringify(raw, null, 2) + '\n';
-  const tmp = `${CONFIG_FILE}.${process.pid}.tmp`;
-  await fs.writeFile(tmp, content, { mode: 0o600 });
-  await fs.rename(tmp, CONFIG_FILE);
+  await atomicWrite(CONFIG_FILE, JSON.stringify(raw, null, 2) + '\n');
 }
 
 export function parseConfigValue(key: ConfigKey, raw: string): number {

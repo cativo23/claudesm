@@ -9,7 +9,7 @@ interface Props {
 
 export function ConfirmDialog({ message, onConfirm, onCancel }: Props): React.JSX.Element {
   useInput((input, key) => {
-    if (input === 'y' || input === 'Y') onConfirm();
+    if (input === 'y' || input === 'Y') void onConfirm();
     else if (input === 'n' || input === 'N' || key.escape) onCancel();
   });
 
