@@ -1,54 +1,69 @@
 name: Auto Release
 
 on:
-  pull_request:
-    types: [closed]
-    branches: [main]
+  push:
+    tags:
+      - 'v*'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
-  release:
-    if: >-
-      github.event.pull_request.merged == true &&
-      startsWith(github.event.pull_request.head.ref, 'release/')
+  ci-gate:
+    name: CI gate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm run build
+
+  release:
+    needs: ci-gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      exists: ${{ steps.check_tag.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Extract and validate version
         id: version
         env:
-          BRANCH: ${{ github.event.pull_request.head.ref }}
+          TAG: ${{ github.ref_name }}
         run: |
-          # Strip "release/" prefix — supports both "release/v0.2.0" and "release/0.2.0"
-          RAW="${BRANCH#release/}"
-          # Ensure version starts with "v"
+          RAW="$TAG"
           if [[ "$RAW" != v* ]]; then
             RAW="v${RAW}"
           fi
-          # Validate semver format (vMAJOR.MINOR.PATCH with optional pre-release/build)
           if ! [[ "$RAW" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?(\+[a-zA-Z0-9.]+)?$ ]]; then
             echo "::error::Invalid version format: $RAW (expected vX.Y.Z)"
             exit 1
           fi
-          echo "tag=$RAW" >> "$GITHUB_OUTPUT"
-          # Strip "v" prefix for CHANGELOG lookup (sections use [0.1.0] not [v0.1.0])
-          echo "number=${RAW#v}" >> "$GITHUB_OUTPUT"
-          # Detect prerelease: v0.x.y is prerelease, v1.0.0+ is stable
-          MAJOR="${RAW#v}"
-          MAJOR="${MAJOR%%.*}"
-          if [[ "$MAJOR" -eq 0 ]]; then
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          fi
+          {
+            echo "tag=$RAW"
+            echo "number=${RAW#v}"
+            if [[ "$RAW" =~ - ]]; then
+              echo "prerelease=true"
+            else
+              echo "prerelease=false"
+            fi
+          } >> "$GITHUB_OUTPUT"
 
       - name: Check tag does not already exist
         id: check_tag
@@ -70,7 +85,6 @@ jobs:
           VERSION: ${{ steps.version.outputs.number }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
-          # Extract the section between ## [VERSION] and the next ## [ (or EOF)
           NOTES=$(awk -v ver="$VERSION" '
             BEGIN { found=0 }
             /^## \[/ {
@@ -79,16 +93,11 @@ jobs:
             }
             found { print }
           ' CHANGELOG.md)
-
-          # Trim leading/trailing blank lines
           NOTES=$(printf '%s\n' "$NOTES" | sed -e '/[^[:space:]]/,$!d' -e :a -e '/^\s*$/{ $d; N; ba; }')
-
           if [ -z "$NOTES" ]; then
             NOTES="Release $TAG"
             echo "::warning::No CHANGELOG.md section found for [$VERSION] — using fallback message."
           fi
-
-          # Write to file to preserve multiline content
           printf '%s\n' "$NOTES" > /tmp/release-notes.md
 
       - name: Create GitHub Release
@@ -96,16 +105,39 @@ jobs:
         env:
           TAG: ${{ steps.version.outputs.tag }}
           PRERELEASE: ${{ steps.version.outputs.prerelease }}
-          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PRERELEASE_FLAG=""
           if [[ "$PRERELEASE" == "true" ]]; then
             PRERELEASE_FLAG="--prerelease"
           fi
-
           gh release create "$TAG" \
             --title "$TAG" \
             --notes-file /tmp/release-notes.md \
-            --target "$MERGE_SHA" \
             $PRERELEASE_FLAG
+
+  npm-publish:
+    needs: release
+    if: needs.release.outputs.exists != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: npm ci
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          echo "Publishing claudesm@${PKG_VERSION} (release tag: ${RELEASE_TAG})"
+          npm publish --access public --provenance
