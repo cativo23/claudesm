@@ -1,8 +1,7 @@
 import pc from 'picocolors';
 import { discoverSessions } from '../lib/sessions/discover.js';
 import { getCurrentSessionId } from '../lib/sessions/current.js';
-import { formatBytes, printError } from '../lib/render.js';
-import { CsmError } from '../lib/errors.js';
+import { formatBytes } from '../lib/render.js';
 
 export interface StatusOpts {
   json?: boolean;
@@ -11,16 +10,7 @@ export interface StatusOpts {
 export async function run(opts: StatusOpts): Promise<void> {
   const currentId = await getCurrentSessionId();
 
-  let projects;
-  try {
-    projects = await discoverSessions(currentId);
-  } catch (err) {
-    if (err instanceof CsmError) {
-      printError(err.message);
-      process.exit(err.exitCode);
-    }
-    throw err;
-  }
+  const projects = await discoverSessions(currentId);
 
   const allSessions = projects.flatMap(p => p.sessions);
   const totalMessages = allSessions.reduce((sum, s) => sum + s.messageCount, 0);

@@ -4,8 +4,7 @@ import { getCurrentSessionId } from '../lib/sessions/current.js';
 import { resolveConfig } from '../lib/config.js';
 import { safeDelete } from '../lib/fs-safe.js';
 import { metaFilePath } from '../lib/paths.js';
-import { formatBytes, printError, printInfo } from '../lib/render.js';
-import { CsmError } from '../lib/errors.js';
+import { formatBytes, printInfo } from '../lib/render.js';
 
 export interface CleanOpts {
   days?: number;
@@ -21,16 +20,7 @@ export async function run(opts: CleanOpts): Promise<void> {
 
   const currentId = await getCurrentSessionId();
 
-  let projects;
-  try {
-    projects = await discoverSessions(currentId);
-  } catch (err) {
-    if (err instanceof CsmError) {
-      printError(err.message);
-      process.exit(err.exitCode);
-    }
-    throw err;
-  }
+  const projects = await discoverSessions(currentId);
 
   const allSessions = projects.flatMap(p => p.sessions);
   const now = Date.now();
