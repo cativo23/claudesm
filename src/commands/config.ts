@@ -1,6 +1,7 @@
 import pc from 'picocolors';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { resolveConfig, saveConfig, unsetConfigKey, parseConfigValue, DEFAULTS, CONFIG_KEYS, type ConfigKey } from '../lib/config.js';
 import { CONFIG_FILE } from '../lib/paths.js';
 import { printError, printInfo } from '../lib/render.js';
@@ -24,7 +25,13 @@ async function cmdSet(key: string, value: string): Promise<void> {
     printError(`Unknown config key: ${key}`);
     process.exit(1);
   }
-  const parsed = parseConfigValue(key, value);
+  let parsed: number;
+  try {
+    parsed = parseConfigValue(key, value);
+  } catch (err) {
+    printError((err as Error).message);
+    process.exit(1);
+  }
   await saveConfig({ [key]: parsed });
   process.stdout.write(`${pc.green('✓')} ${key} = ${parsed}\n`);
 }
@@ -73,7 +80,7 @@ async function cmdEdit(): Promise<void> {
 }
 
 async function cmdMigrate(): Promise<void> {
-  const rcFile = path.join(process.env['HOME'] ?? process.env['USERPROFILE'] ?? '', '.csmrc');
+  const rcFile = path.join(os.homedir(), '.csmrc');
   let content: string;
   try {
     content = await fs.readFile(rcFile, 'utf8');

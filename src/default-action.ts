@@ -24,8 +24,15 @@ export async function run(): Promise<void> {
     return discoverSessions(currentId);
   };
 
+  // Deferred output — written after Ink unmounts to avoid corrupting raw-mode terminal
+  let pendingOutput: string | null = null;
+
   const onResume = (session: Session): void => {
-    process.stdout.write(`\nRun: claude --resume ${session.id}\n`);
+    pendingOutput = `\nRun: claude --resume ${session.id}\n`;
+  };
+
+  const onCopy = (session: Session): void => {
+    pendingOutput = session.id;
   };
 
   const onDelete = async (session: Session): Promise<void> => {
@@ -40,10 +47,11 @@ export async function run(): Promise<void> {
 
   try {
     const { unmount, waitUntilExit } = render(
-      React.createElement(App, { loadSessions, onResume, onDelete, onClean })
+      React.createElement(App, { loadSessions, onResume, onCopy, onDelete, onClean })
     );
     await waitUntilExit();
     unmount();
+    if (pendingOutput !== null) process.stdout.write(pendingOutput);
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOTTY') {
       // WSL broken raw mode — fallback to list

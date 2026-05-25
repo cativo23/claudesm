@@ -4,7 +4,10 @@ import { CURRENT_SESSION_FILE } from '../paths.js';
 export async function getCurrentSessionId(): Promise<string | null> {
   // Env var takes priority
   const envId = process.env['CLAUDE_SESSION_ID'];
-  if (envId) return envId.trim();
+  if (envId) {
+    const trimmed = envId.trim();
+    if (/^[0-9a-f-]{8,64}$/.test(trimmed)) return trimmed;
+  }
 
   try {
     const content = await fs.readFile(CURRENT_SESSION_FILE, 'utf8');

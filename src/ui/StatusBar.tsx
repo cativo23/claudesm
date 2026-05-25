@@ -9,7 +9,7 @@ interface Props {
 
 const HINTS: Record<Mode, string> = {
   list: '↑/↓ navigate  Enter action  r resume  d delete  s status  ? help  q quit',
-  action: 'Enter confirm  Esc back  r resume  d delete  c copy ID',
+  action: 'r resume  d delete  c copy ID  Esc back',
   confirm: 'y confirm  n/Esc cancel',
   help: 'q/Esc close',
   status: 'q/Esc close',

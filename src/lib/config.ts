@@ -95,7 +95,8 @@ export async function unsetConfigKey(key: ConfigKey): Promise<void> {
 
 export function parseConfigValue(key: ConfigKey, raw: string): number {
   const n = Number(raw);
-  if (isNaN(n)) throw new Error(`${key} must be a number`);
+  if (isNaN(n) || !Number.isFinite(n) || !Number.isInteger(n) || n < 1)
+    throw new Error(`${key} must be a positive integer`);
   return n;
 }
 

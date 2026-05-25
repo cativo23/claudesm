@@ -59,7 +59,7 @@ export async function run(opts: ListOpts): Promise<void> {
     process.stdout.write(pc.cyan(pc.bold(`  ${project.display}\n`)));
 
     for (const session of project.sessions) {
-      if (!opts.all && session.id.startsWith('.')) continue;
+      if (!opts.all && session.projectSlug.startsWith('.')) continue;
 
       const shortId = session.id.slice(0, 8);
       const ageDays = Math.floor((Date.now() - session.timestamp.getTime()) / 86_400_000);

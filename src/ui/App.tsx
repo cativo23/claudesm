@@ -24,6 +24,7 @@ type Mode = 'list' | 'action' | 'confirm' | 'help' | 'status';
 interface Props {
   loadSessions: () => Promise<ProjectRecord[]>;
   onResume: (session: Session) => void;
+  onCopy: (session: Session) => void;
   onDelete: (session: Session) => Promise<void>;
   onClean: () => Promise<void>;
 }
@@ -32,13 +33,14 @@ function flatSessions(projects: ProjectRecord[]): Session[] {
   return projects.flatMap(p => p.sessions);
 }
 
-export function App({ loadSessions, onResume, onDelete, onClean }: Props): React.JSX.Element {
+export function App({ loadSessions, onResume, onCopy, onDelete, onClean }: Props): React.JSX.Element {
   const { exit } = useApp();
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [mode, setMode] = useState<Mode>('list');
+  const [pendingClean, setPendingClean] = useState(false);
 
   useEffect(() => {
     loadSessions()
@@ -57,7 +59,7 @@ export function App({ loadSessions, onResume, onDelete, onClean }: Props): React
     else if (key.return && selectedSession) setMode('action');
     else if (input === 'r' && selectedSession) { onResume(selectedSession); exit(); }
     else if (input === 'd' && selectedSession) setMode('confirm');
-    else if (input === 'c') { onClean().catch((err: Error) => { setError(err.message); }); }
+    else if (input === 'c') { setPendingClean(true); setMode('confirm'); }
     else if (input === 's') setMode('status');
     else if (input === '?') setMode('help');
     else if (input === 'q' || key.escape) exit();
@@ -67,20 +69,28 @@ export function App({ loadSessions, onResume, onDelete, onClean }: Props): React
     if (action === 'resume' && selectedSession) { onResume(selectedSession); exit(); }
     else if (action === 'delete') setMode('confirm');
     else if (action === 'copy' && selectedSession) {
-      // Best-effort clipboard copy
-      process.stdout.write(selectedSession.id);
+      onCopy(selectedSession);
       exit();
     }
     else if (action === 'back') setMode('list');
   };
 
   const handleConfirm = async () => {
-    if (!selectedSession) return;
-    await onDelete(selectedSession);
-    const fresh = await loadSessions().catch(() => [] as ProjectRecord[]);
-    setProjects(fresh);
-    setSelectedIndex(i => Math.min(i, Math.max(0, flatSessions(fresh).length - 1)));
-    setMode('list');
+    try {
+      if (pendingClean) {
+        await onClean();
+      } else if (selectedSession) {
+        await onDelete(selectedSession);
+      }
+      const fresh = await loadSessions().catch(() => [] as ProjectRecord[]);
+      setProjects(fresh);
+      setSelectedIndex(i => Math.min(i, Math.max(0, flatSessions(fresh).length - 1)));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setPendingClean(false);
+      setMode('list');
+    }
   };
 
   if (loading) {
@@ -115,11 +125,13 @@ export function App({ loadSessions, onResume, onDelete, onClean }: Props): React
       {mode === 'action' && selectedSession && (
         <ActionMenu session={selectedSession} onAction={handleAction} />
       )}
-      {mode === 'confirm' && selectedSession && (
+      {mode === 'confirm' && (pendingClean || selectedSession) && (
         <ConfirmDialog
-          message={`Delete session ${selectedSession.id.slice(0, 8)}? This cannot be undone.`}
+          message={pendingClean
+            ? 'Clean all sessions older than threshold? This cannot be undone.'
+            : `Delete session ${selectedSession!.id.slice(0, 8)}? This cannot be undone.`}
           onConfirm={handleConfirm}
-          onCancel={() => setMode('action')}
+          onCancel={() => { setPendingClean(false); setMode(pendingClean ? 'list' : 'action'); }}
         />
       )}
       {(mode === 'list') && (

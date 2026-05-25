@@ -22,7 +22,8 @@ export async function discoverSessions(currentSessionId: string | null): Promise
     const slug = slugDirent.name;
     // Guard against path traversal via crafted slug names
     const slugPath = path.resolve(PROJECTS_DIR, slug);
-    if (!slugPath.startsWith(path.resolve(PROJECTS_DIR) + path.sep)) return null;
+    const rel = path.relative(path.resolve(PROJECTS_DIR), slugPath);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) return null;
 
     let entries;
     try {
