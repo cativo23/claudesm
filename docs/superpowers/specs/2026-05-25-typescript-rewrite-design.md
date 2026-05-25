@@ -1,7 +1,7 @@
 # claudesm TypeScript Rewrite — Design Spec
 
 **Date:** 2026-05-25
-**Status:** Approved (post-Opus review, round 2)
+**Status:** Approved (post-Opus review, round 3 — all BLOCKERs resolved)
 **Author:** Carlos Cativo
 
 ---
@@ -34,7 +34,7 @@
 | Language | TypeScript (ESM source) | Type safety, cross-platform, npm distribution |
 | Bundle | tsdown (Rolldown/Oxc) | tsup successor, 3-10x faster, actively maintained by Evan You |
 | CLI framework | Commander.js | 35M weekly downloads, zero deps, ~20ms startup |
-| TUI | Ink 7.x | Used by Claude Code itself; React mental model, Yoga flexbox |
+| TUI | Ink 7.x | Used by Claude Code itself; React mental model, Yoga flexbox. **Requires React 19.** |
 | Prompts (non-TTY) | @clack/prompts | For piped/CI contexts where Ink cannot mount; never mix with Ink in same flow |
 | Process spawning | execa | Cross-platform, ergonomic, signal handling |
 | Colors | picocolors | 7KB, zero deps, respects NO_COLOR/FORCE_COLOR=0\|1 |
@@ -44,7 +44,7 @@
 | Update notifier | update-notifier | Expected convention; suppress when Ink is rendering |
 | Node minimum | 20.10 LTS | Stable fetch, top-level await, node:test |
 
-**React version:** Pin `react@18` via `overrides` in package.json to prevent npm pulling React 19 transitively before Ink 7 certifies it.
+**React version:** Ink 7 requires React 19 (`peerDependencies: { react: ">=19.2.0" }`). Use `react@^19.2.0` and `@types/react@^19.2.0`. No overrides block needed.
 
 ---
 
@@ -93,6 +93,15 @@ claudesm/
 **No `lib/colors.ts` wrapper** — import picocolors directly (`import pc from 'picocolors'`). An extra layer is YAGNI.
 
 **No `commands/tui.ts` stub** — the TUI is the default action, not a subcommand. `csm.ts` does not import `default-action.ts` until invoked. Backward compat: register `csm tui` as an alias for the default action (see Commands section).
+
+**Default action wiring in `csm.ts`:** Commander's `program.action()` fires only when no recognized subcommand is matched. Wire it as:
+```ts
+program.action(async () => {
+  const { run } = await import('./default-action.js');
+  await run();
+});
+```
+This must be registered BEFORE `program.parse(process.argv)`. Commander calls it when `argv` has no recognized subcommand (e.g. `csm` or `csm --help` does NOT trigger it — `--help` is intercepted first).
 
 ---
 
@@ -143,6 +152,8 @@ Every `/` in the absolute path is replaced with `-`, then the whole string is pr
 **Windows path:** Claude Code on Windows writes slugs derived from `%USERPROFILE%` — format to be verified on first Windows test run. Write the decoder defensively with a `WARN: unknown slug format` log.
 
 **Multi-project:** The bash version only ever operated on ONE project directory (guessed from `$HOME`). The rewrite enumerates ALL project directories. `discover.ts` returns sessions grouped by project slug, and all commands operate across all projects by default. A `--project <slug>` filter may be added later.
+
+**Session discovery filtering (critical):** Each project directory under `~/.claude/projects/<slug>/` contains BOTH `.jsonl` session files AND subdirectories (e.g. `memory/`, `<uuid>/` sibling dirs). `discover.ts` MUST filter to `dirent.isFile() && name.endsWith('.jsonl')` — never process subdirectories as sessions. Treating a directory as a session file will crash; attempting to delete the `<uuid>/` directory when removing a session will corrupt data.
 
 ### JSONL format
 
@@ -252,7 +263,7 @@ All commands follow the lazy-load pattern (`run(opts)` exported, loaded via `imp
 | Command | Flags | Notes |
 |---|---|---|
 | `csm` (no args) | — | TTY check → Ink TUI; falls back to `csm list` (no flags) on non-TTY |
-| `csm list` | `-a/--all`, `-c/--current`, `--json` | `--all` includes hidden sessions (`.` prefix); `--current` shows only current session (if no current session: exit 0 + "No current session" to stdout); `--json` outputs `{ projects: ProjectRecord[] }` |
+| `csm list` | `-a/--all`, `-c/--current`, `--json` | `--all` includes hidden sessions (`.` prefix); `--current` shows only current session (if no current session: message to stderr, exit 0, empty stdout — preserves shell composability); `--json` outputs `{ projects: ProjectRecord[] }` |
 | `csm clean` | `--days/-d N`, `--force/-f`, `--dry-run` | Default days: 7 (from config `cleanDays`); skips current session; deletes both `.jsonl` and `META_DIR` entry |
 | `csm remove <id>` | `--force/-f` | Accepts partial session ID (substring match, first result); refuses to remove current session without `--force`; deletes `.jsonl` + META entry |
 | `csm resume <id>` | `--spawn` | Default: **print** `claude --resume <id>` for user to copy (preserving bash behavior); `--spawn` flag activates `execa('claude', ['--resume', id], { stdio: 'inherit' })` |
@@ -292,9 +303,9 @@ Default action when `csm` is called with no arguments (or `csm tui`). Mounts an 
 ### TTY detection
 
 ```ts
-import { isTTY, isCI } from 'std-env';
+import { hasTTY, isCI } from 'std-env'; // hasTTY, NOT isTTY — std-env@3/4 does not export isTTY
 
-const canRenderTUI = isTTY && !isCI;
+const canRenderTUI = hasTTY && !isCI;
 if (!canRenderTUI) {
   // run list command with text output
   const { run } = await import('./commands/list.js');
@@ -474,8 +485,8 @@ Additional failure modes handled gracefully (not crashed):
   "dependencies": {
     "commander": "^12.1.0",
     "ink": "^7.0.3",
-    "react": "^18.3.0",
-    "@clack/prompts": "^0.7.0",
+    "react": "^19.2.0",
+    "@clack/prompts": "^1.0.0",
     "execa": "^9.5.0",
     "picocolors": "^1.1.0",
     "env-paths": "^3.0.0",
@@ -485,15 +496,11 @@ Additional failure modes handled gracefully (not crashed):
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
-    "@types/react": "^18.3.0",
-    "ink-testing-library": "^3.0.0",
-    "tsdown": "^0.12.0",
+    "@types/react": "^19.2.0",
+    "ink-testing-library": "^4.0.0",
+    "tsdown": "^0.22.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
-  },
-  "overrides": {
-    "react": "^18.3.0",
-    "@types/react": "^18.3.0"
   }
 }
 ```
