@@ -2,7 +2,6 @@ import pc from 'picocolors';
 import { discoverSessions, findSession } from '../lib/sessions/discover.js';
 import { getCurrentSessionId } from '../lib/sessions/current.js';
 import { printError } from '../lib/render.js';
-import { CsmError, ClaudeNotFoundError } from '../lib/errors.js';
 
 export interface ResumeOpts {
   spawn?: boolean;
@@ -16,16 +15,7 @@ export async function run(id: string, opts: ResumeOpts): Promise<void> {
 
   const currentId = await getCurrentSessionId();
 
-  let projects;
-  try {
-    projects = await discoverSessions(currentId);
-  } catch (err) {
-    if (err instanceof CsmError) {
-      printError(err.message);
-      process.exit(err.exitCode);
-    }
-    throw err;
-  }
+  const projects = await discoverSessions(currentId);
 
   const matches = findSession(projects, id);
 

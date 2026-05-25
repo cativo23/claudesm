@@ -1,8 +1,7 @@
 import pc from 'picocolors';
 import { discoverSessions } from '../lib/sessions/discover.js';
 import { getCurrentSessionId } from '../lib/sessions/current.js';
-import { formatBytes, formatDate, truncate, formatToolsLine, printError } from '../lib/render.js';
-import { CsmError } from '../lib/errors.js';
+import { formatBytes, formatDate, truncate, formatToolsLine } from '../lib/render.js';
 import type { ListJsonOutput, Session } from '../lib/types.js';
 
 export interface ListOpts {
@@ -14,16 +13,7 @@ export interface ListOpts {
 export async function run(opts: ListOpts): Promise<void> {
   const currentId = await getCurrentSessionId();
 
-  let projects;
-  try {
-    projects = await discoverSessions(currentId);
-  } catch (err) {
-    if (err instanceof CsmError) {
-      printError(err.message);
-      process.exit(err.exitCode);
-    }
-    throw err;
-  }
+  let projects = await discoverSessions(currentId);
 
   // --current: show only the current session
   if (opts.current) {

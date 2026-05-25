@@ -4,7 +4,6 @@ import { getCurrentSessionId } from '../lib/sessions/current.js';
 import { safeDelete } from '../lib/fs-safe.js';
 import { metaFilePath } from '../lib/paths.js';
 import { printError } from '../lib/render.js';
-import { CsmError, SessionNotFoundError, AmbiguousSessionIdError } from '../lib/errors.js';
 import { findSession } from '../lib/sessions/discover.js';
 
 export interface RemoveOpts {
@@ -19,16 +18,7 @@ export async function run(id: string, opts: RemoveOpts): Promise<void> {
 
   const currentId = await getCurrentSessionId();
 
-  let projects;
-  try {
-    projects = await discoverSessions(currentId);
-  } catch (err) {
-    if (err instanceof CsmError) {
-      printError(err.message);
-      process.exit(err.exitCode);
-    }
-    throw err;
-  }
+  const projects = await discoverSessions(currentId);
 
   const matches = findSession(projects, id);
 

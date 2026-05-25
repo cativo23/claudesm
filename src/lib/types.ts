@@ -25,9 +25,6 @@ export interface ConfigData {
   $schema?: string;
   version: number;
   cleanDays: number;
-  maxMessages: number;
-  autoCleanEnabled: boolean;
-  showTools: boolean;
 }
 
 export type ConfigSource = 'default' | 'file' | 'env';
@@ -39,7 +36,4 @@ export interface ConfigEntry<T> {
 
 export interface ResolvedConfig {
   cleanDays: ConfigEntry<number>;
-  maxMessages: ConfigEntry<number>;
-  autoCleanEnabled: ConfigEntry<boolean>;
-  showTools: ConfigEntry<boolean>;
 }
