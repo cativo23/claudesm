@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - Unreleased
+
+### Added
+- TypeScript rewrite — the entire codebase is now TypeScript (Node.js 20.10+).
+- npm distribution: install globally with `npm install -g claudesm` or run ad-hoc with `npx claudesm`.
+- Cross-platform support: macOS, Linux, and Windows.
+- Ink-based TUI — the interactive interface is now powered by [Ink](https://github.com/vadimdemedes/ink) (React for terminals). Keyboard shortcuts are unchanged.
+- `config` subcommand with `get`, `set`, `unset`, `list`, `path`, and `edit` operations.
+- OS-native config location: `~/.config/claudesm/config.json` (Linux), `~/Library/Preferences/claudesm/config.json` (macOS), `%APPDATA%\claudesm\Config\config.json` (Windows).
+
+### Changed
+- Package renamed from `claude-session-manager` to `claudesm` on npm; GitHub repo moved to `cativo23/claudesm`.
+- Config format changed from `~/.csmrc` (shell variables) to a JSON file at the OS-native path above.
+- Binary name `csm` is unchanged — all existing commands (`list`, `clean`, `remove`, `resume`, `status`, `help`) work as before.
+
+### Removed
+- Bash shell dependency — Node.js replaces bash, grep, sed, awk, fzf.
+- `install.sh` / `uninstall.sh` bash installers (replaced by npm install/uninstall).
+
 ## [1.1.0] - 2026-03-08
 
 ### Added
@@ -108,14 +127,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Slash command for Claude Code (/csm)
 - Optional fzf integration for enhanced TUI
 
-[Unreleased]: https://github.com/cativo23/claude-session-manager/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/cativo23/claude-session-manager/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/cativo23/claude-session-manager/compare/v0.3.5...v1.0.0
-[0.3.5]: https://github.com/cativo23/claude-session-manager/compare/v0.3.4...v0.3.5
-[0.3.4]: https://github.com/cativo23/claude-session-manager/compare/v0.3.3...v0.3.4
-[0.3.3]: https://github.com/cativo23/claude-session-manager/compare/v0.3.2...v0.3.3
-[0.3.2]: https://github.com/cativo23/claude-session-manager/compare/v0.3.1...v0.3.2
-[0.3.1]: https://github.com/cativo23/claude-session-manager/compare/v0.3.0...v0.3.1
-[0.3.0]: https://github.com/cativo23/claude-session-manager/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/cativo23/claude-session-manager/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/cativo23/claude-session-manager/tree/v0.1.0
+[Unreleased]: https://github.com/cativo23/claudesm/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/cativo23/claudesm/compare/v1.1.0...v2.0.0
+[1.1.0]: https://github.com/cativo23/claudesm/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/cativo23/claudesm/compare/v0.3.5...v1.0.0
+[0.3.5]: https://github.com/cativo23/claudesm/compare/v0.3.4...v0.3.5
+[0.3.4]: https://github.com/cativo23/claudesm/compare/v0.3.3...v0.3.4
+[0.3.3]: https://github.com/cativo23/claudesm/compare/v0.3.2...v0.3.3
+[0.3.2]: https://github.com/cativo23/claudesm/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/cativo23/claudesm/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/cativo23/claudesm/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/cativo23/claudesm/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/cativo23/claudesm/tree/v0.1.0
