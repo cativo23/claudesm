@@ -1,4 +1,4 @@
-# Contributing to Claude Session Manager
+# Contributing to claudesm
 
 First off, thank you for considering contributing to csm! It's people like you that make csm such a great tool.
 
@@ -28,8 +28,8 @@ Before contributing, ensure you have:
 
 - A GitHub account
 - Git installed locally
-- Bash 4.0+ available
-- Familiarity with shell scripting
+- Node.js 20.10+ and npm 8+
+- Familiarity with TypeScript
 
 ### Quick Start
 
@@ -182,15 +182,15 @@ This project uses **Gitmoji + Conventional Commits** for commit messages.
 ### 1. Fork and Clone
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/claude-session-manager.git
-cd claude-session-manager
+git clone https://github.com/YOUR-USERNAME/claudesm.git
+cd claudesm
 ```
 
 ### 2. Set Up Remotes
 
 ```bash
 # Add upstream remote
-git remote add upstream https://github.com/cativo23/claude-session-manager.git
+git remote add upstream https://github.com/cativo23/claudesm.git
 
 # Verify remotes
 git remote -v
@@ -222,15 +222,18 @@ git checkout -b feature/your-feature
 ### 5. Make Changes and Test
 
 ```bash
-# Format code
-shfmt -w .
+# Type-check
+npm run typecheck
 
 # Lint
-find src -type f -name "*.sh" -exec shellcheck {} +
+npm run lint
+
+# Build
+npm run build
 
 # Test manually
-./src/csm.sh --help
-./src/csm.sh list
+npm run dev -- --help
+npm run dev -- list
 ```
 
 ### 6. Commit Your Changes
@@ -333,54 +336,50 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 1. Fork the repo
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR-USERNAME/claude-session-manager.git
+   git clone https://github.com/YOUR-USERNAME/claudesm.git
    ```
-3. Install locally:
+3. Install dependencies:
    ```bash
-   cd claude-session-manager
-   LOCAL_INSTALL=1 ./install.sh
+   cd claudesm
+   npm install
    ```
 4. Make your changes
 5. Test with:
    ```bash
-   ./src/csm.sh --help
-   ./src/csm.sh list
+   npm run dev -- --help
+   npm run dev -- list
    ```
-6. Run shellcheck:
+6. Build and type-check:
    ```bash
-   find src -type f -name "*.sh" -exec shellcheck {} +
+   npm run build
+   npm run typecheck
    ```
 
 ---
 
 ## Code Style
 
-### Shell Scripts
+### TypeScript
 
-```bash
-#!/bin/bash
-# filename.sh - Brief description
+```typescript
+// commands/example.ts - Brief description
 
-# Globals: UPPERCASE
-readonly GLOBAL_CONST="value"
-GLOBAL_VAR=""
+import type { Session } from '../lib/sessions.js';
 
-# Function: snake_case with cmd_ prefix for commands
-cmd_example() {
-    local input="$1"
-    local result
-
-    # Essential comments only (in English)
-    result="$input"
+// Named exports preferred over default
+export async function runExample(id: string): Promise<void> {
+    // Essential comments only, in English
+    const session = await findSession(id);
+    if (!session) throw new Error(`Session not found: ${id}`);
 }
 ```
 
 **Rules:**
-- **Indentation**: Tabs
-- **Variables**: `UPPERCASE` for globals, `lowercase` for locals
-- **Functions**: `snake_case` with `cmd_` prefix for command functions
-- **Comments**: English, essential only
-- **Error handling**: Use `die()` function from common.sh
+- **Indentation**: 2 spaces
+- **Types**: explicit return types on exported functions; infer locals
+- **Imports**: use `.js` extension (ESM); named exports over default
+- **Error handling**: throw typed `Error` instances; never `process.exit` inside lib code
+- **Async**: `async/await` throughout; no raw Promise chains
 
 ---
 
@@ -388,10 +387,12 @@ cmd_example() {
 
 Before submitting a PR, please:
 
-1. Run shellcheck on all shell files
-2. Format code with `shfmt -w .`
-3. Test all affected commands manually
-4. Verify the help text is accurate
+1. Run `npm run typecheck` — no TypeScript errors allowed
+2. Run `npm run lint` — no ESLint errors allowed
+3. Run `npm run build` — build must succeed
+4. Run `npm test` — all tests must pass
+5. Test affected commands manually with `npm run dev -- <command>`
+6. Verify the help text is accurate
 
 ---
 

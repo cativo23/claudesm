@@ -25,10 +25,10 @@
 List, clean, remove, and resume sessions from a beautiful TUI or CLI.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-[![CI](https://github.com/cativo23/claude-session-manager/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/cativo23/claude-session-manager/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/Version-v1.0.0-blue.svg?style=flat-square)](CHANGELOG.md)
+[![CI](https://github.com/cativo23/claudesm/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/cativo23/claudesm/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/claudesm.svg?style=flat-square)](https://www.npmjs.com/package/claudesm)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
-[![Bash](https://img.shields.io/badge/Bash-4%2B-4EAA25?style=flat-square&logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
+[![Node](https://img.shields.io/badge/Node-20.10%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 
 </div>
 
@@ -52,35 +52,36 @@ List, clean, remove, and resume sessions from a beautiful TUI or CLI.
 
 ## Quick Start
 
-**One-liner install:**
+**Install globally via npm:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/cativo23/claude-session-manager/main/install.sh | bash
+npm install -g claudesm
 ```
 
-**Or clone manually:**
+**Or run without installing:**
 
 ```bash
-git clone https://github.com/cativo23/claude-session-manager.git
-cd claude-session-manager
-LOCAL_INSTALL=1 ./install.sh
+npx claudesm
 ```
 
-Then reload your shell:
+Then use the `csm` binary:
+
 ```bash
-source ~/.bashrc   # or source ~/.zshrc
+csm          # open interactive TUI
+csm list     # list sessions
+csm status   # show statistics
 ```
 
 ---
 
 ## Features
 
-- **Beautiful TUI** - Navigate sessions with an intuitive interface
+- **Beautiful TUI** - Navigate sessions with an intuitive Ink-powered interface
 - **Quick Actions** - List, clean, remove, and resume in seconds
 - **Auto-Cleanup** - Optionally clean old sessions before each Claude session
 - **Slash Command** - Use `/csm` directly inside Claude Code
-- **Lightweight** - Pure bash, no external dependencies required
-- **Configurable** - Customize behavior via `~/.csmrc`
+- **Cross-Platform** - Works on macOS, Linux, and Windows
+- **Configurable** - OS-native JSON config with `csm config` subcommand
 
 ---
 
@@ -88,33 +89,27 @@ source ~/.bashrc   # or source ~/.zshrc
 
 ### Prerequisites
 
-| Requirement | Version | Required |
-|:------------|:--------|:---------|
-| **Bash** | 4.0+ | Yes |
-| **grep, sed, awk** | any | Yes |
-| **stat** | any | Yes |
-| **fzf** | any | Optional (enhanced TUI) |
+| Requirement | Version | Notes |
+|:------------|:--------|:------|
+| **Node.js** | 20.10+ | Required |
+| **npm** | 8+ | Bundled with Node |
 
-### Automatic Install
+### Install via npm
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/cativo23/claude-session-manager/main/install.sh | bash
+npm install -g claudesm
 ```
 
-### Manual Install
+### Run without installing
 
 ```bash
-git clone https://github.com/cativo23/claude-session-manager.git
-cd claude-session-manager
-LOCAL_INSTALL=1 ./install.sh
+npx claudesm
 ```
 
 ### Upgrade
 
 ```bash
-csm --upgrade
-# or
-cd claude-session-manager && git pull && ./install.sh
+npm update -g claudesm
 ```
 
 ---
@@ -131,7 +126,19 @@ cd claude-session-manager && git pull && ./install.sh
 | `csm remove <id>` | Remove specific session |
 | `csm resume <id>` | Show resume command |
 | `csm status` | Show statistics |
+| `csm config <sub>` | Manage configuration |
 | `csm help` | Show help |
+
+#### Config subcommands
+
+| Subcommand | Description |
+|:-----------|:------------|
+| `csm config list` | Show all config values |
+| `csm config get <key>` | Get a single value |
+| `csm config set <key> <value>` | Set a value |
+| `csm config unset <key>` | Remove a key |
+| `csm config path` | Print config file path |
+| `csm config edit` | Open config in $EDITOR |
 
 ### Examples
 
@@ -171,20 +178,38 @@ After installing, use `/csm` inside Claude Code:
 
 ## Configuration
 
-Create `~/.csmrc` to customize behavior:
+Configuration is stored as JSON in an OS-native location:
+
+| Platform | Path |
+|:---------|:-----|
+| **Linux** | `~/.config/claudesm/config.json` |
+| **macOS** | `~/Library/Preferences/claudesm/config.json` |
+| **Windows** | `%APPDATA%\claudesm\Config\config.json` |
+
+Print the active path with:
 
 ```bash
-# Days before a session is considered old (default: 7)
-CSM_CLEAN_DAYS=14
+csm config path
+```
 
-# Max messages before "abandoned" (default: 500)
-CSM_MAX_MESSAGES=500
+Example `config.json`:
 
-# Enable auto-clean (default: true)
-CSM_AUTO_CLEAN_ENABLED=true
+```json
+{
+  "cleanDays": 14,
+  "maxMessages": 500,
+  "autoCleanEnabled": true,
+  "showTools": true
+}
+```
 
-# Show tools usage in list (default: true)
-CSM_SHOW_TOOLS=true
+Manage config from the CLI:
+
+```bash
+csm config set cleanDays 14
+csm config get cleanDays
+csm config list
+csm config edit    # opens in $EDITOR
 ```
 
 ### Auto-Cleanup Hook
@@ -219,26 +244,27 @@ claude() {
 ## Project Structure
 
 ```
-claude-session-manager/
-├── install.sh                 # Installer script
+claudesm/
 ├── src/
-│   ├── csm.sh                # Main entry point
-│   ├── lib/
-│   │   ├── common.sh         # Common utilities
-│   │   ├── config.sh         # Configuration loader
-│   │   ├── colors.sh         # Colors and formatting
-│   │   └── description.sh    # Session description generator
-│   └── commands/
-│       ├── list.sh           # List sessions
-│       ├── clean.sh          # Clean old sessions
-│       ├── remove.sh         # Remove session
-│       ├── resume.sh         # Show resume command
-│       ├── status.sh         # Show statistics
-│       ├── help.sh           # Show help
-│       └── tui.sh            # TUI interface
+│   ├── cli.ts               # Entry point / CLI bootstrap
+│   ├── commands/            # Command implementations
+│   │   ├── list.ts
+│   │   ├── clean.ts
+│   │   ├── remove.ts
+│   │   ├── resume.ts
+│   │   ├── status.ts
+│   │   ├── help.ts
+│   │   ├── config.ts
+│   │   └── tui.tsx          # Ink-based TUI
+│   └── lib/                 # Shared utilities
+│       ├── config.ts        # Config loader (OS-native paths)
+│       ├── sessions.ts      # Session discovery & parsing
+│       └── format.ts        # Output formatting helpers
 ├── skills/
 │   └── csm/
-│       └── SKILL.md          # Claude Code skill
+│       └── SKILL.md         # Claude Code skill
+├── package.json
+├── tsconfig.json
 ├── README.md
 ├── CONTRIBUTING.md
 ├── CODE_OF_CONDUCT.md
@@ -249,10 +275,8 @@ claude-session-manager/
 
 ## Requirements
 
-- **Required**: bash 4+, grep, sed, awk, stat
-- **Optional**: fzf (for enhanced TUI experience)
-
-Without fzf, csm falls back to a basic select menu.
+- **Required**: Node.js 20.10+, npm 8+
+- **Platforms**: macOS, Linux, Windows
 
 ---
 
@@ -262,24 +286,33 @@ Without fzf, csm falls back to a basic select menu.
 
 ```bash
 # Clone the repo
-git clone https://github.com/cativo23/claude-session-manager.git
-cd claude-session-manager
+git clone https://github.com/cativo23/claudesm.git
+cd claudesm
 
-# Run directly
-./src/csm.sh --help
+# Install dependencies
+npm install
 
-# Or install locally
-LOCAL_INSTALL=1 ./install.sh
+# Run in dev mode (ts-node / tsx)
+npm run dev -- list
+
+# Build
+npm run build
+
+# Link globally for local testing
+npm link
 ```
 
 ### Running Tests
 
 ```bash
-# Format & lint
-shfmt -w . && shellcheck src/**/*.sh install.sh
+# Type-check
+npm run typecheck
+
+# Lint
+npm run lint
 
 # Run tests
-./tests/run-tests.sh
+npm test
 ```
 
 ### Git Workflow
@@ -334,6 +367,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ❤️ for the Claude Code community**
 
-[Report Bug](https://github.com/cativo23/claude-session-manager/issues) · [Request Feature](https://github.com/cativo23/claude-session-manager/issues)
+[Report Bug](https://github.com/cativo23/claudesm/issues) · [Request Feature](https://github.com/cativo23/claudesm/issues)
 
 </div>

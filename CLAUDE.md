@@ -5,11 +5,17 @@ For all development tasks, follow [AGENTS.md](./AGENTS.md).
 ## Quick Commands
 
 ```bash
-# Install locally
-LOCAL_INSTALL=1 ./install.sh
+# Install dependencies
+npm install
 
-# Format & lint
-shfmt -w . && find src -type f -name "*.sh" -exec shellcheck {} +
+# Run in dev mode
+npm run dev -- list
+
+# Build
+npm run build
+
+# Type-check & lint
+npm run typecheck && npm run lint
 ```
 
 ## Git
@@ -20,7 +26,7 @@ shfmt -w . && find src -type f -name "*.sh" -exec shellcheck {} +
 
 ## Project Structure
 
-- **Main**: `src/csm.sh`
-- **Commands**: `src/commands/`
-- **Libraries**: `src/lib/`
-- **Config**: `~/.csmrc`
+- **Entry point**: `src/cli.ts`
+- **Commands**: `src/commands/` (TypeScript, `.ts` / `.tsx` for TUI)
+- **Libraries**: `src/lib/` (sessions, config, format helpers)
+- **Config**: OS-native JSON (see `csm config path`)

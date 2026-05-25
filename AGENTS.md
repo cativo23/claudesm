@@ -4,77 +4,80 @@
 
 ## Project Overview
 
-- **Name**: Claude Session Manager (csm)
-- **Description**: Bash-based tool for managing Claude Code sessions
-- **Tech Stack**: Bash 4.0+, grep, sed, awk, stat, fzf (optional)
-- **Repository**: https://github.com/cativo23/claude-session-manager
+- **Name**: claudesm (csm)
+- **Description**: TypeScript CLI for managing Claude Code sessions, distributed via npm
+- **Tech Stack**: TypeScript, Node.js 20.10+, Ink (React TUI), tsdown
+- **Repository**: https://github.com/cativo23/claudesm
 
 ## Quick Start
 
 ```bash
-# The project is installed in ~/.csm
-# Main script entry point
-~/.csm/bin/csm.sh
+# Install dependencies
+npm install
+
+# Run in dev mode
+npm run dev -- list
+
+# Build the project
+npm run build
+
+# Link globally for local testing
+npm link
 
 # Common commands
 csm list      # List all sessions
 csm clean     # Clean old sessions
-csm tui       # Open terminal UI
+csm config    # Manage configuration
 csm help      # Show help
 ```
 
 ## File Structure
 
 ```
-claude-session-manager/
+claudesm/
 ├── src/
-│   ├── csm.sh              # Entry point
+│   ├── cli.ts              # Entry point / CLI bootstrap
 │   ├── commands/           # CLI commands
-│   │   ├── list.sh
-│   │   ├── clean.sh
-│   │   ├── remove.sh
-│   │   ├── resume.sh
-│   │   ├── status.sh
-│   │   ├── help.sh
-│   │   └── tui.sh
-│   └── lib/                # Libraries
-│       ├── common.sh       # Common utilities
-│       ├── config.sh       # Configuration handling
-│       ├── colors.sh       # Color utilities
-│       └── description.sh  # Session description
+│   │   ├── list.ts
+│   │   ├── clean.ts
+│   │   ├── remove.ts
+│   │   ├── resume.ts
+│   │   ├── status.ts
+│   │   ├── help.ts
+│   │   ├── config.ts
+│   │   └── tui.tsx         # Ink-based TUI
+│   └── lib/                # Shared utilities
+│       ├── config.ts       # Config loader (OS-native paths)
+│       ├── sessions.ts     # Session discovery & parsing
+│       └── format.ts       # Output formatting helpers
 ├── skills/                 # Claude Code skills
-├── install.sh              # Installation script
-└── uninstall.sh            # Uninstallation script
+├── package.json
+└── tsconfig.json
 ```
 
 ## Code Style
 
-### Shell Scripts
+### TypeScript
 
-```bash
-#!/bin/bash
-# filename.sh - Brief description
+```typescript
+// commands/example.ts - Brief description
 
-# Globals: UPPERCASE
-readonly GLOBAL_CONST="value"
-GLOBAL_VAR=""
+import type { Session } from '../lib/sessions.js';
 
-# Function: snake_case with cmd_ prefix for commands
-cmd_example() {
-    local input="$1"
-    local result
-
-    # Essential comments only (in English)
-    result="$input"
+// Named exports preferred over default
+export async function runExample(id: string): Promise<void> {
+    // Essential comments only, in English
+    const session = await findSession(id);
+    if (!session) throw new Error(`Session not found: ${id}`);
 }
 ```
 
 **Rules:**
-- **Indentation**: Tabs
-- **Variables**: `UPPERCASE` for globals, `lowercase` for locals
-- **Functions**: `snake_case` with `cmd_` prefix for command functions
-- **Comments**: English, essential only
-- **Error handling**: Use `die()` function from common.sh
+- **Indentation**: 2 spaces
+- **Types**: explicit return types on exported functions; infer locals
+- **Imports**: use `.js` extension (ESM); named exports over default
+- **Error handling**: throw typed `Error` instances; never `process.exit` inside lib code
+- **Async**: `async/await` throughout; no raw Promise chains
 
 ## Development Workflow
 
@@ -107,19 +110,21 @@ git commit -m "✨ feat: add amazing feature"
 ### Before Commit
 
 ```bash
-shfmt -w .           # Format code
-find src -type f -name "*.sh" -exec shellcheck {} +  # Lint
+npm run typecheck    # Type-check TypeScript
+npm run lint         # ESLint
+npm run build        # Verify build succeeds
+npm test             # Run test suite
 ```
 
 ## Agent Rules
 
 ### ✅ DO
 
-- Format code with `shfmt` before committing
-- Fix all shellcheck warnings
+- Run `npm run typecheck` and `npm run lint` before committing
+- Fix all TypeScript and ESLint errors
 - Ask when unsure about authentication/security code
 - Propose a plan for complex changes
-- Use existing utility functions from `lib/common.sh`
+- Use existing utility functions from `src/lib/`
 - Keep changes minimal and focused
 
 ### ❌ DON'T
@@ -142,17 +147,19 @@ find src -type f -name "*.sh" -exec shellcheck {} +  # Lint
 
 | Function | Purpose | Location |
 |----------|---------|----------|
-| `get_current_session` | Get current session ID | `lib/common.sh` |
-| `find_session` | Find session by partial ID | `lib/common.sh` |
-| `get_first_message` | Extract first user message | `lib/common.sh` |
-| `load_config` | Load user configuration | `lib/config.sh` |
-| `die` | Show error and exit | `lib/common.sh` |
+| `getCurrentSession` | Get current session ID | `lib/sessions.ts` |
+| `findSession` | Find session by partial ID | `lib/sessions.ts` |
+| `getFirstMessage` | Extract first user message | `lib/sessions.ts` |
+| `loadConfig` | Load user configuration | `lib/config.ts` |
+| `getConfigPath` | Return OS-native config path | `lib/config.ts` |
 
 ## Configuration
 
-User config is stored at `~/.csmrc`. Load it with:
+User config is a JSON file at an OS-native path. Use `getConfigPath()` to resolve it:
 
-```bash
-source "$SCRIPT_DIR/lib/config.sh"
-load_config "$HOME/.csmrc"
+```typescript
+import { loadConfig, getConfigPath } from '../lib/config.js';
+
+const config = await loadConfig();
+console.log(getConfigPath()); // e.g. ~/.config/claudesm/config.json
 ```
