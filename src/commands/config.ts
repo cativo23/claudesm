@@ -86,9 +86,6 @@ async function cmdMigrate(): Promise<void> {
   const skipped: string[] = [];
   const keyMap: Record<string, ConfigKey> = {
     CSM_CLEAN_DAYS: 'cleanDays',
-    CSM_MAX_MESSAGES: 'maxMessages',
-    CSM_AUTO_CLEAN_ENABLED: 'autoCleanEnabled',
-    CSM_SHOW_TOOLS: 'showTools',
   };
 
   for (const line of content.split('\n')) {

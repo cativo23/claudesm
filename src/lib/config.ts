@@ -7,12 +7,9 @@ import { ConfigParseError } from './errors.js';
 export const DEFAULTS: ConfigData = {
   version: 1,
   cleanDays: 7,
-  maxMessages: 500,
-  autoCleanEnabled: true,
-  showTools: true,
 };
 
-const CONFIG_KEYS = ['cleanDays', 'maxMessages', 'autoCleanEnabled', 'showTools'] as const;
+const CONFIG_KEYS = ['cleanDays'] as const;
 type ConfigKey = typeof CONFIG_KEYS[number];
 
 function fromEnv(): Partial<ConfigData> {
@@ -22,17 +19,6 @@ function fromEnv(): Partial<ConfigData> {
     const n = Number(cleanDays);
     if (!isNaN(n)) out.cleanDays = n;
   }
-  const maxMessages = process.env['CSM_MAX_MESSAGES'];
-  if (maxMessages !== undefined) {
-    const n = Number(maxMessages);
-    if (!isNaN(n)) out.maxMessages = n;
-  }
-  const autoClean = process.env['CSM_AUTO_CLEAN_ENABLED'];
-  if (autoClean === 'true' || autoClean === '1') out.autoCleanEnabled = true;
-  else if (autoClean === 'false' || autoClean === '0') out.autoCleanEnabled = false;
-  const showTools = process.env['CSM_SHOW_TOOLS'];
-  if (showTools === 'true' || showTools === '1') out.showTools = true;
-  else if (showTools === 'false' || showTools === '0') out.showTools = false;
   return out;
 }
 
@@ -70,9 +56,6 @@ export async function resolveConfig(): Promise<ResolvedConfig> {
 
   return {
     cleanDays: resolve('cleanDays', DEFAULTS.cleanDays),
-    maxMessages: resolve('maxMessages', DEFAULTS.maxMessages),
-    autoCleanEnabled: resolve('autoCleanEnabled', DEFAULTS.autoCleanEnabled),
-    showTools: resolve('showTools', DEFAULTS.showTools),
   };
 }
 
@@ -112,19 +95,10 @@ export async function unsetConfigKey(key: ConfigKey): Promise<void> {
   await saveConfig(next);
 }
 
-export function parseConfigValue(key: ConfigKey, raw: string): number | boolean {
-  const defaultVal = DEFAULTS[key];
-  if (typeof defaultVal === 'number') {
-    const n = Number(raw);
-    if (isNaN(n)) throw new Error(`${key} must be a number`);
-    return n;
-  }
-  if (typeof defaultVal === 'boolean') {
-    if (raw === 'true' || raw === '1') return true;
-    if (raw === 'false' || raw === '0') return false;
-    throw new Error(`${key} must be true or false`);
-  }
-  throw new Error(`Unknown config key: ${key}`);
+export function parseConfigValue(key: ConfigKey, raw: string): number {
+  const n = Number(raw);
+  if (isNaN(n)) throw new Error(`${key} must be a number`);
+  return n;
 }
 
 export { CONFIG_KEYS, type ConfigKey };
