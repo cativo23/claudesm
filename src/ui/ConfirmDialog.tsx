@@ -3,7 +3,7 @@ import { Box, Text, useInput } from 'ink';
 
 interface Props {
   message: string;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   onCancel: () => void;
 }
 

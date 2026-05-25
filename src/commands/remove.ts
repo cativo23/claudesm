@@ -48,15 +48,14 @@ export async function run(id: string, opts: RemoveOpts): Promise<void> {
 
   const session = matches[0]!;
 
-  if (session.isCurrent) {
-    printError('Cannot remove current session. Exit Claude Code first, or use --force.');
-    if (!opts.force) process.exit(1);
-  }
-
   const shortId = session.id.slice(0, 8);
 
+  if (session.isCurrent) {
+    printError('Cannot remove current session. Exit Claude Code first.');
+    process.exit(1);
+  }
+
   if (!opts.force) {
-    // Non-interactive: require --force
     process.stderr.write(`Use ${pc.cyan('--force')} to confirm removal of session ${pc.cyan(shortId)}.\n`);
     process.exit(1);
   }

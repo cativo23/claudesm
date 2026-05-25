@@ -6,9 +6,9 @@ import { ClaudeDataDirMissingError, NoSessionsFoundError } from '../errors.js';
 import type { Session, ProjectRecord } from '../types.js';
 
 export async function discoverSessions(currentSessionId: string | null): Promise<ProjectRecord[]> {
-  let slugDirs: string[];
+  let slugDirents: import('node:fs').Dirent[];
   try {
-    slugDirs = await fs.readdir(PROJECTS_DIR);
+    slugDirents = await fs.readdir(PROJECTS_DIR, { withFileTypes: true });
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       throw new ClaudeDataDirMissingError('~/.claude/projects/ not found — have you run Claude Code yet?');
@@ -19,8 +19,13 @@ export async function discoverSessions(currentSessionId: string | null): Promise
   const projects: ProjectRecord[] = [];
   let totalSessions = 0;
 
-  for (const slug of slugDirs) {
-    const slugPath = path.join(PROJECTS_DIR, slug);
+  for (const slugDirent of slugDirents) {
+    // Only descend into actual directories — skip symlinks, files, and path traversal
+    if (!slugDirent.isDirectory()) continue;
+    const slug = slugDirent.name;
+    // Guard against path traversal via crafted slug names
+    const slugPath = path.resolve(PROJECTS_DIR, slug);
+    if (!slugPath.startsWith(path.resolve(PROJECTS_DIR) + path.sep)) continue;
     let entries;
     try {
       entries = await fs.readdir(slugPath, { withFileTypes: true });
@@ -31,9 +36,8 @@ export async function discoverSessions(currentSessionId: string | null): Promise
     const jsonlFiles = entries.filter(d => d.isFile() && d.name.endsWith('.jsonl'));
     if (jsonlFiles.length === 0) continue;
 
-    const sessions: Session[] = [];
-
-    for (const dirent of jsonlFiles) {
+    // Parallelise stat + parse across session files within this project
+    const settled = await Promise.all(jsonlFiles.map(async (dirent): Promise<Session | null> => {
       const filePath = path.join(slugPath, dirent.name);
       const sessionId = dirent.name.replace(/\.jsonl$/, '');
 
@@ -41,7 +45,7 @@ export async function discoverSessions(currentSessionId: string | null): Promise
       try {
         stat = await fs.stat(filePath);
       } catch {
-        continue;
+        return null;
       }
 
       let parsed;
@@ -51,7 +55,7 @@ export async function discoverSessions(currentSessionId: string | null): Promise
         parsed = { messageCount: 0, description: '', tools: {}, firstTimestamp: null, lastTimestamp: null };
       }
 
-      sessions.push({
+      return {
         id: sessionId,
         projectSlug: slug,
         projectDisplay: decodeSlug(slug),
@@ -62,9 +66,10 @@ export async function discoverSessions(currentSessionId: string | null): Promise
         tools: parsed.tools,
         isCurrent: currentSessionId !== null && sessionId === currentSessionId,
         sizeBytes: stat.size,
-      });
-    }
+      };
+    }));
 
+    const sessions = settled.filter((s): s is Session => s !== null);
     sessions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
     totalSessions += sessions.length;
 

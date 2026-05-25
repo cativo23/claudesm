@@ -18,9 +18,15 @@ type ConfigKey = typeof CONFIG_KEYS[number];
 function fromEnv(): Partial<ConfigData> {
   const out: Partial<ConfigData> = {};
   const cleanDays = process.env['CSM_CLEAN_DAYS'];
-  if (cleanDays !== undefined) out.cleanDays = Number(cleanDays);
+  if (cleanDays !== undefined) {
+    const n = Number(cleanDays);
+    if (!isNaN(n)) out.cleanDays = n;
+  }
   const maxMessages = process.env['CSM_MAX_MESSAGES'];
-  if (maxMessages !== undefined) out.maxMessages = Number(maxMessages);
+  if (maxMessages !== undefined) {
+    const n = Number(maxMessages);
+    if (!isNaN(n)) out.maxMessages = n;
+  }
   const autoClean = process.env['CSM_AUTO_CLEAN_ENABLED'];
   if (autoClean !== undefined) out.autoCleanEnabled = autoClean !== 'false' && autoClean !== '0';
   const showTools = process.env['CSM_SHOW_TOOLS'];

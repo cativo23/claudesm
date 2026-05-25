@@ -35,7 +35,6 @@ export async function run(opts: CleanOpts): Promise<void> {
   }
 
   const allSessions = projects.flatMap(p => p.sessions);
-  const cutoffMs = days * 86_400_000;
   const now = Date.now();
 
   const candidates = allSessions.filter(s => {

@@ -57,7 +57,7 @@ export function App({ loadSessions, onResume, onDelete, onClean }: Props): React
     else if (key.return && selectedSession) setMode('action');
     else if (input === 'r' && selectedSession) { onResume(selectedSession); exit(); }
     else if (input === 'd' && selectedSession) setMode('confirm');
-    else if (input === 'c') { onClean().catch(() => {}); }
+    else if (input === 'c') { onClean().catch((err: Error) => { setError(err.message); }); }
     else if (input === 's') setMode('status');
     else if (input === '?') setMode('help');
     else if (input === 'q' || key.escape) exit();
@@ -77,8 +77,9 @@ export function App({ loadSessions, onResume, onDelete, onClean }: Props): React
   const handleConfirm = async () => {
     if (!selectedSession) return;
     await onDelete(selectedSession);
-    setProjects(await loadSessions().catch(() => []));
-    setSelectedIndex(i => Math.min(i, flatSessions(projects).length - 2));
+    const fresh = await loadSessions().catch(() => [] as ProjectRecord[]);
+    setProjects(fresh);
+    setSelectedIndex(i => Math.min(i, Math.max(0, flatSessions(fresh).length - 1)));
     setMode('list');
   };
 

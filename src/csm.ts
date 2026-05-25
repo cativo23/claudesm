@@ -49,7 +49,11 @@ program
 program
   .command('clean')
   .description('Remove sessions older than N days')
-  .option('-d, --days <n>', 'age threshold in days', parseInt)
+  .option('-d, --days <n>', 'age threshold in days', (v) => {
+    const n = parseInt(v, 10);
+    if (isNaN(n) || n < 1) throw new Error('--days must be a positive integer');
+    return n;
+  })
   .option('-f, --force', 'delete without prompting')
   .option('--dry-run', 'preview without deleting')
   .action(async (opts) => {
