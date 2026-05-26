@@ -128,13 +128,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
 
       - run: npm ci
 
       - name: Publish to npm (trusted publisher)
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           RELEASE_TAG: ${{ needs.release.outputs.tag }}
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
