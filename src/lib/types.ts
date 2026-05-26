@@ -2,6 +2,7 @@ export interface Session {
   id: string;
   projectSlug: string;
   projectDisplay: string;
+  cwd: string;
   filePath: string;
   timestamp: Date;
   messageCount: number;

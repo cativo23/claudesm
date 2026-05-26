@@ -36,15 +36,19 @@ export async function run(id: string, opts: ResumeOpts): Promise<void> {
   const session = matches[0]!;
 
   if (opts.spawn) {
-    // Spawn claude --resume <id> with inherited stdio
+    // Spawn claude --resume <id> in the session's project directory
+    const { existsSync } = await import('node:fs');
+    const cwd = existsSync(session.cwd) ? session.cwd : process.cwd();
     const { execa } = await import('execa');
     try {
-      await execa('claude', ['--resume', session.id], { stdio: 'inherit' });
+      await execa('claude', ['--resume', session.id], { cwd, stdio: 'inherit' });
     } catch (err) {
-      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      const e = err as NodeJS.ErrnoException & { exitCode?: number };
+      if (e.code === 'ENOENT') {
         printError('`claude` not found in PATH. Install Claude Code from https://claude.ai/code');
         process.exit(3);
       }
+      if (typeof e.exitCode === 'number') return;
       throw err;
     }
   } else {

@@ -7,10 +7,12 @@ interface ParsedSession {
   tools: Record<string, number>;
   firstTimestamp: Date | null;
   lastTimestamp: Date | null;
+  cwd: string | null;
 }
 
 interface RawEntry {
   type: string;
+  cwd?: string;
   message?: {
     content?: Array<{ type: string; text?: string; name?: string }> | string;
   };
@@ -29,6 +31,7 @@ export async function parseSessionFile(filePath: string): Promise<ParsedSession>
     const tools: Record<string, number> = {};
     let firstTimestamp: Date | null = null;
     let lastTimestamp: Date | null = null;
+    let cwd: string | null = null;
 
     rl.on('line', (line) => {
       const trimmed = line.trim();
@@ -40,6 +43,8 @@ export async function parseSessionFile(filePath: string): Promise<ParsedSession>
       } catch {
         return; // skip corrupted lines
       }
+
+      if (!cwd && typeof entry.cwd === 'string' && entry.cwd) cwd = entry.cwd;
 
       const ts = entry.timestamp ? new Date(entry.timestamp) : null;
       if (ts && !isNaN(ts.getTime())) {
@@ -77,7 +82,7 @@ export async function parseSessionFile(filePath: string): Promise<ParsedSession>
       }
     });
 
-    rl.on('close', () => resolve({ messageCount, description, tools, firstTimestamp, lastTimestamp }));
+    rl.on('close', () => resolve({ messageCount, description, tools, firstTimestamp, lastTimestamp, cwd }));
     rl.on('error', reject);
   });
 }

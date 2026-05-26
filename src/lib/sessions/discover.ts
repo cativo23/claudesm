@@ -50,13 +50,16 @@ export async function discoverSessions(currentSessionId: string | null): Promise
       try {
         parsed = await parseSessionFile(filePath);
       } catch {
-        parsed = { messageCount: 0, description: '', tools: {}, firstTimestamp: null, lastTimestamp: null };
+        parsed = { messageCount: 0, description: '', tools: {}, firstTimestamp: null, lastTimestamp: null, cwd: null };
       }
 
       return {
         id: sessionId,
         projectSlug: slug,
-        projectDisplay: decodeSlug(slug),
+        // Real cwd from the transcript when present — decodeSlug is lossy for
+        // paths containing '-' (e.g. ms-crm-bluemedical → ms/crm/bluemedical).
+        projectDisplay: parsed.cwd ?? decodeSlug(slug),
+        cwd: parsed.cwd ?? decodeSlug(slug),
         filePath,
         timestamp: parsed.lastTimestamp ?? stat.mtime,
         messageCount: parsed.messageCount,
@@ -71,7 +74,7 @@ export async function discoverSessions(currentSessionId: string | null): Promise
     if (sessions.length === 0) return null;
     sessions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
-    return { slug, display: decodeSlug(slug), sessions };
+    return { slug, display: sessions[0]?.cwd ?? decodeSlug(slug), sessions };
   }));
 
   const projects = projectResults.filter((p): p is ProjectRecord => p !== null);
