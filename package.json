@@ -4,7 +4,7 @@
   "description": "Manage your Claude Code sessions with elegance",
   "type": "module",
   "bin": {
-    "csm": "./dist/csm.mjs"
+    "csm": "./dist/csm.js"
   },
   "files": [
     "dist",
