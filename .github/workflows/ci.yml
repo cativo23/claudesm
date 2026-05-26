@@ -2,60 +2,23 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ develop ]
+    branches: [main, develop]
 
 jobs:
-  shellcheck:
-    name: Shellcheck
+  build:
+    name: Typecheck & Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Shellcheck
-        uses: ludeeus/action-shellcheck@master
+      - uses: actions/setup-node@v4
         with:
-          check_together: 'yes'
-          format: gcc
-          ignore_paths: >-
-            .git
-            .github
-          severity: warning
+          node-version: 22
 
-  shfmt:
-    name: Shell Format
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - run: npm ci
 
-      - name: Check formatting
-        run: |
-          # Install shfmt
-          go install mvdan.cc/sh/v3/cmd/shfmt@latest
+      - run: npm run typecheck
 
-          # Check formatting (fail if not formatted correctly)
-          $(go env GOPATH)/bin/shfmt -d .
-
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y bash grep sed gawk coreutils
-
-      - name: Make scripts executable
-        run: |
-          chmod +x src/*.sh src/lib/*.sh src/commands/*.sh install.sh
-
-      - name: Run tests
-        run: |
-          # Test basic functionality
-          ./src/csm.sh --help
-          ./src/csm.sh list || true  # May have no sessions
-          ./src/csm.sh status || true
-          echo "Tests passed!"
+      - run: npm run build
