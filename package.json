@@ -3,6 +3,15 @@
   "version": "2.0.1",
   "description": "Manage your Claude Code sessions with elegance",
   "type": "module",
+  "license": "MIT",
+  "homepage": "https://github.com/cativo23/claudesm#readme",
+  "bugs": {
+    "url": "https://github.com/cativo23/claudesm/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cativo23/claudesm.git"
+  },
   "bin": {
     "csm": "dist/csm.js"
   },
