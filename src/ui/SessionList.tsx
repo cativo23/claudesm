@@ -1,31 +1,37 @@
 import React from 'react';
-import { Box } from 'ink';
+import { Box, Text } from 'ink';
 import type { ProjectRecord } from '../lib/types.js';
-import { ProjectGroup } from './ProjectGroup.js';
+import { SessionRow } from './SessionRow.js';
+import { truncate } from '../lib/render.js';
+import { buildRows, computeWindow, selectedRowIndex } from '../lib/viewport.js';
 
 interface Props {
   projects: ProjectRecord[];
   selectedIndex: number;
+  viewportRows: number;
 }
 
-export function SessionList({ projects, selectedIndex }: Props): React.JSX.Element {
-  let offset = 0;
+export function SessionList({ projects, selectedIndex, viewportRows }: Props): React.JSX.Element {
+  const rows = buildRows(projects);
+  const selectedRow = selectedRowIndex(rows, selectedIndex);
+  const { start, end } = computeWindow(rows.length, Math.max(0, selectedRow), viewportRows);
+  const visible = rows.slice(start, end);
+
   return (
     <Box flexDirection="column">
-      {projects.map((project) => {
-        const group = (
-          <ProjectGroup
-            key={project.slug}
-            slug={project.slug}
-            display={project.display}
-            sessions={project.sessions}
-            selectedIndex={selectedIndex}
-            globalOffset={offset}
+      {visible.map((row) =>
+        row.kind === 'header' ? (
+          <Box key={`h:${row.slug}`} paddingX={1}>
+            <Text color="cyan" bold>{truncate(row.display, 60)}</Text>
+          </Box>
+        ) : (
+          <SessionRow
+            key={row.session.id}
+            session={row.session}
+            isSelected={row.index === selectedIndex}
           />
-        );
-        offset += project.sessions.length;
-        return group;
-      })}
+        )
+      )}
     </Box>
   );
 }

@@ -27,7 +27,7 @@
     "build": "tsdown",
     "dev": "tsx src/csm.ts",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'No tests yet' && exit 0",
+    "test": "node --import tsx/esm --test $(find src \\( -name '*.test.ts' -o -name '*.test.tsx' \\))",
     "prepublishOnly": "npm run typecheck && npm run build"
   },
   "dependencies": {

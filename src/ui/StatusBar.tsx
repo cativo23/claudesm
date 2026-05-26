@@ -1,14 +1,15 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 
-type Mode = 'list' | 'action' | 'confirm' | 'help' | 'status';
+type Mode = 'list' | 'search' | 'action' | 'confirm' | 'help' | 'status';
 
 interface Props {
   mode: Mode;
 }
 
 const HINTS: Record<Mode, string> = {
-  list: '↑/↓ navigate  Enter action  r resume  d delete  s status  ? help  q quit',
+  list: '↑/↓ navigate  / search  Enter action  r resume  d delete  s status  ? help  q quit',
+  search: 'type to filter  ↑/↓ navigate  Enter apply  Esc clear',
   action: 'r resume  d delete  c copy ID  Esc back',
   confirm: 'y confirm  n/Esc cancel',
   help: 'q/Esc close',
