@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-05-26
+
+### Added
+- Filterable, scrolling session picker — press `/` in the TUI to search by id, project, or description. The list now windows to the terminal height (centered on the cursor) instead of rendering every session at once. Added `j`/`k` navigation alongside the arrow keys.
+- Resume now launches `claude --resume` directly in the session's project directory, instead of only printing the command. The `resume --spawn` flag does the same from the CLI.
+
+### Fixed
+- Project paths containing `-` (e.g. `ms-crm-bluemedical`) were shown with hyphens turned into slashes. The UI and resume now use the real working directory recorded in the session transcript rather than the lossy slug.
+
 ## [2.0.1] - 2026-05-26
 
 ### Fixed
@@ -133,7 +142,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Slash command for Claude Code (/csm)
 - Optional fzf integration for enhanced TUI
 
-[Unreleased]: https://github.com/cativo23/claudesm/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/cativo23/claudesm/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/cativo23/claudesm/compare/v2.0.1...v2.1.0
+[2.0.1]: https://github.com/cativo23/claudesm/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/cativo23/claudesm/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/cativo23/claudesm/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/cativo23/claudesm/compare/v0.3.5...v1.0.0
