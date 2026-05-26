@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0] - Unreleased
+## [2.0.1] - 2026-05-26
+
+### Fixed
+- Output extension changed from `.mjs` to `.js` — npm rejected `.mjs` bin entries; `"type": "module"` makes `.js` files ESM equivalents.
+- Tag-based auto-release and npm publish via GitHub Actions (trusted publisher, no token required).
+
+## [2.0.0] - 2026-05-26
 
 ### Added
 - TypeScript rewrite — the entire codebase is now TypeScript (Node.js 20.10+).
